@@ -1,5 +1,5 @@
 import { _decorator, Component, Sprite, UITransform } from "cc";
-import { CONTROLLER_ENUM, DIRECTION_ENUM, DIRECTION_ORDER_ENUM, ENTITY_STATE_ENUM, EVENT_ENUM, PARAMS_TYPE_ENUM } from "../Enums";
+import { CONTROLLER_ENUM, DIRECTION_ENUM, DIRECTION_ORDER_ENUM, ENTITY_STATE_ENUM, ENTITY_TYPE_ENUM, EVENT_ENUM, PARAMS_TYPE_ENUM } from "../Enums";
 import EventManager from "../Runtime/EventManager";
 import { PlayerStateMachine } from "../Scripts/Player/PLayerStateMachine";
 import { TILE_HEIGHT, TILE_WIDTH } from "../Scripts/Tile/TileManager";
@@ -14,6 +14,7 @@ export class EntityManager extends Component {
 
   private _direction: DIRECTION_ENUM;
   private _state: ENTITY_STATE_ENUM;
+  private type: ENTITY_TYPE_ENUM;
 
   get direction() {
     return this._direction;
@@ -42,6 +43,7 @@ export class EntityManager extends Component {
     // 初始状态
     this.x = params.x;
     this.y = params.y;
+    this.type = params.type;
     this.direction = params.direction;
     this.state = params.state;
   }

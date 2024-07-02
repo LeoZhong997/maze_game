@@ -12,15 +12,13 @@ import ResourceManager from '../../Runtime/ResourceManager';
 export class TileMapManager extends Component {
 
     async init () {
-      // const {mapInfo} = Levels[`level${1}`];   // 解构成mapInfo
-      const {mapInfo} = DataManager.Instance
       const spriteFrames = await ResourceManager.Instance.loadDir('texture/tile/tile')
-      // console.log('mapInfo=', mapInfo)
-      // console.log('spriteFrames=', spriteFrames)
-      // console.log('TileMapManager.node=', this.node.name)
+      const {mapInfo} = DataManager.Instance
+      DataManager.Instance.tileInfo = []
 
       for (let i = 0; i < mapInfo.length; i++) {
         const column = mapInfo[i];
+        DataManager.Instance.tileInfo[i] = []
         for (let j = 0; j < column.length; j++) {
           const item = column[j];
           if (item.src === null || item.src === null) {
@@ -37,7 +35,9 @@ export class TileMapManager extends Component {
           const imgSrc = `tile (${number})`
           const spriteFrame = spriteFrames.find(v => v.name === imgSrc) || spriteFrames[0]
           const tileManager = node.addComponent(TileManager)
-          tileManager.init(spriteFrame, i, j)
+          const type = item.type
+          tileManager.init(type, spriteFrame, i, j)
+          DataManager.Instance.tileInfo[i][j] = tileManager
 
           node.setParent(this.node)
         }

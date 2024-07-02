@@ -1,9 +1,9 @@
-import { _decorator, Component, Sprite, UITransform, Animation, AnimationClip, animation, SpriteFrame } from "cc";
-import { TILE_HEIGHT, TILE_WIDTH } from "../Tile/TileManager";
-import { CONTROLLER_ENUM, DIRECTION_ENUM, DIRECTION_ORDER_ENUM, ENTITY_STATE_ENUM, ENTITY_TYPE_ENUM, EVENT_ENUM, PARAMS_TYPE_ENUM } from "../../Enums";
+import { _decorator } from "cc";
+import { CONTROLLER_ENUM, DIRECTION_ENUM, ENTITY_STATE_ENUM, ENTITY_TYPE_ENUM, EVENT_ENUM } from "../../Enums";
 import EventManager from "../../Runtime/EventManager";
 import { PlayerStateMachine } from "./PLayerStateMachine";
 import { EntityManager } from "../../Base/EntityManager";
+import DataManager from "../../Runtime/DataManager";
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerManager')
