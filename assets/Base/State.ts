@@ -1,0 +1,52 @@
+import { AnimationClip, Sprite, SpriteFrame, UITransform, animation } from "cc";
+import ResourceManager from "../Runtime/ResourceManager";
+import { StateMachine } from "./StateMachine";
+
+const ANIMATION_SPEED = 1 / 8
+
+/***
+ * 1. 需要知道 AnimationClip
+ * 2. 需要播放动画的能力 animation
+ */
+export default class State {
+
+  private animationClip: AnimationClip;
+
+  constructor(
+    private fsm: StateMachine,
+    private path: string, private wrapMode:
+    AnimationClip.WrapMode = AnimationClip.WrapMode.Normal
+  ) {
+    this.init()
+  }
+
+  async init() {
+    // 加载图像资源
+    // const spriteFrames = await ResourceManager.Instance.loadDir(this.path)
+    const promise = ResourceManager.Instance.loadDir(this.path)
+    this.fsm.waitingList.push(promise)
+    const spriteFrames = await promise
+
+    this.animationClip = new AnimationClip();
+
+    const track  = new animation.ObjectTrack(); // 创建一个对象轨道
+    // 指定轨道路径，即指定组件为 Sprite 的 "spriteFrame" 属性
+    track.path = new animation.TrackPath().toComponent(Sprite).toProperty('spriteFrame');
+    // 获取关键帧列表：时间；变化的属性，即spriteFrame
+    const frames: Array<[number, SpriteFrame]> = spriteFrames.map(
+      (spriteFrame, index) => [ANIMATION_SPEED * index, spriteFrame]);
+    // 为单通道的曲线添加关键帧
+    track.channel.curve.assignSorted(frames);
+
+    // 最后将轨道添加到动画剪辑以应用
+    this.animationClip.addTrack(track);
+    this.animationClip.name = this.path;
+    this.animationClip.duration = frames.length * ANIMATION_SPEED; // 整个动画剪辑的周期
+    this.animationClip.wrapMode = this.wrapMode;   // 播放方式
+  }
+
+  run() {
+    this.fsm.animationComponent.defaultClip = this.animationClip;
+    this.fsm.animationComponent.play();
+  }
+}
