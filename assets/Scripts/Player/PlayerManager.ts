@@ -1,6 +1,5 @@
 import { _decorator, Component, Sprite, UITransform, Animation, AnimationClip, animation, SpriteFrame } from "cc";
 import { TILE_HEIGHT, TILE_WIDTH } from "../Tile/TileManager";
-import ResourceManager from "../../Runtime/ResourceManager";
 import { CONTROLLER_ENUM, DIRECTION_ENUM, DIRECTION_ORDER_ENUM, ENTITY_STATE_ENUM, EVENT_ENUM, PARAMS_TYPE_ENUM } from "../../Enums";
 import EventManager from "../../Runtime/EventManager";
 import { PlayerStateMachine } from "./PLayerStateMachine";
@@ -8,7 +7,6 @@ const { ccclass, property } = _decorator;
 
 @ccclass('PlayerManager')
 export class PlayerManager extends Component {
-
   x: number = 0;
   y: number = 0;
   targetX: number = 0;
@@ -45,6 +43,7 @@ export class PlayerManager extends Component {
 
     this.fsm = this.addComponent(PlayerStateMachine);
     await this.fsm.init();   // 有异步操作，使用Promise list等待所有资源加载后才退出
+    this.direction = DIRECTION_ENUM.TOP;
     this.state = ENTITY_STATE_ENUM.IDLE;  // 初始状态
 
     // 注册监听事件

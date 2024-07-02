@@ -1,7 +1,8 @@
-import { _decorator, AnimationClip, Component, Animation, SpriteFrame } from "cc";
+import { _decorator, Animation } from "cc";
 import { FSM_PARAM_TYPE_ENUM, PARAMS_TYPE_ENUM } from "../../Enums";
-import State from "../../Base/State";
 import { StateMachine, getInitParamsNumber, getInitParamsTrigger } from "../../Base/StateMachine";
+import IdleSubStateMachine from "./IdleSubStateMachine";
+import TurnLeftSubStateMachine from "./TurnLeftSubStateMachine";
 const { ccclass, property } = _decorator;
 
 type ParamsValueType = boolean | number;
@@ -20,7 +21,7 @@ export class PlayerStateMachine extends StateMachine {
     this.initStateMachine();  // 初始化状态机，加载动画
     this.initAnimationEvent();
 
-    await Promise.all(this.waitingList)   // 等待所有资源都加载完成
+    await Promise.all(this.waitingList);   // 等待所有资源都加载完成
   }
 
   initParams() {
@@ -31,8 +32,8 @@ export class PlayerStateMachine extends StateMachine {
 
   initStateMachine() {
     // State的构造函数中有异步加载动画资源
-    this.stateMachines.set(PARAMS_TYPE_ENUM.IDLE, new State(this, 'texture/player/idle/top', AnimationClip.WrapMode.Loop))
-    this.stateMachines.set(PARAMS_TYPE_ENUM.TURNLEFT, new State(this, 'texture/player/turnleft/top'))
+    this.stateMachines.set(PARAMS_TYPE_ENUM.IDLE, new IdleSubStateMachine(this));
+    this.stateMachines.set(PARAMS_TYPE_ENUM.TURNLEFT, new TurnLeftSubStateMachine(this));
   }
 
   initAnimationEvent() {
@@ -54,6 +55,8 @@ export class PlayerStateMachine extends StateMachine {
           this.currentState = this.stateMachines.get(PARAMS_TYPE_ENUM.TURNLEFT)
         } else if(this.params.get(PARAMS_TYPE_ENUM.IDLE).value) {
           this.currentState = this.stateMachines.get(PARAMS_TYPE_ENUM.IDLE)
+        } else {
+          this.currentState = this.currentState   // 方向改变时不需要切换状态
         }
         break;
       default:
