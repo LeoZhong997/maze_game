@@ -1,5 +1,5 @@
 import { _decorator, Component, Sprite, UITransform } from "cc";
-import { CONTROLLER_ENUM, DIRECTION_ENUM, DIRECTION_ORDER_ENUM, ENTITY_STATE_ENUM, ENTITY_TYPE_ENUM, EVENT_ENUM, PARAMS_TYPE_ENUM } from "../Enums";
+import { CONTROLLER_ENUM, DIRECTION_ENUM, DIRECTION_ORDER_ENUM, ENTITY_STATE_ENUM, ENTITY_TYPE_ENUM, EVENT_ENUM, PARAMS_NAME_ENUM } from "../Enums";
 import EventManager from "../Runtime/EventManager";
 import { PlayerStateMachine } from "../Scripts/Player/PLayerStateMachine";
 import { TILE_HEIGHT, TILE_WIDTH } from "../Scripts/Tile/TileManager";
@@ -22,7 +22,7 @@ export class EntityManager extends Component {
 
   set direction(newDirection: DIRECTION_ENUM) {
     this._direction = newDirection;
-    this.fsm.setParams(PARAMS_TYPE_ENUM.DIRECTION, DIRECTION_ORDER_ENUM[this._direction])
+    this.fsm.setParams(PARAMS_NAME_ENUM.DIRECTION, DIRECTION_ORDER_ENUM[this._direction])
   }
 
   get state() {

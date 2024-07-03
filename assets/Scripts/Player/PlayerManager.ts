@@ -76,6 +76,21 @@ export class PlayerManager extends EntityManager {
       inputDirection === CONTROLLER_ENUM.LEFT ||
       inputDirection === CONTROLLER_ENUM.RIGHT
     ) {
+      let nextState: ENTITY_STATE_ENUM = ENTITY_STATE_ENUM.IDLE;
+      switch(inputDirection) {
+        case CONTROLLER_ENUM.TOP:
+          nextState = ENTITY_STATE_ENUM.BLOCKFRONT;
+          break;
+        case CONTROLLER_ENUM.BOTTOM:
+          nextState = ENTITY_STATE_ENUM.BLOCKBACK;
+          break;
+        case CONTROLLER_ENUM.LEFT:
+          nextState = ENTITY_STATE_ENUM.BLOCKLEFT;
+          break;
+        case CONTROLLER_ENUM.RIGHT:
+          nextState = ENTITY_STATE_ENUM.BLOCKRIGHT;
+          break;
+      }
       switch (inputDirection) {
         case CONTROLLER_ENUM.TOP:
           playerNextAbsPos.y -= 1;
@@ -116,6 +131,7 @@ export class PlayerManager extends EntityManager {
       const weapenNextX = x + weapenNextAbsPos.x;
       const weapenNextY = y + weapenNextAbsPos.y;
       if (playerNextY < 0 || playerNextX < 0) {
+        this.state = nextState;
         return true;
       }
 
@@ -125,14 +141,17 @@ export class PlayerManager extends EntityManager {
       if (playerTile && playerTile.moveable && (!weapenTile || weapenTile.turnable)) {
         // empty
       } else {
+        this.state = nextState;
         return true;
       }
     } else if (
       inputDirection === CONTROLLER_ENUM.TURNLEFT ||
       inputDirection === CONTROLLER_ENUM.TURNRIGHT
     ) {
+      let nextState: ENTITY_STATE_ENUM = ENTITY_STATE_ENUM.IDLE;;
       switch (inputDirection) {
         case CONTROLLER_ENUM.TURNLEFT:
+          nextState = ENTITY_STATE_ENUM.BLOCKTURNLEFT;
           switch (direction) {
             case DIRECTION_ENUM.TOP:
               weapenNextAbsPos.x -= 1;
@@ -153,6 +172,7 @@ export class PlayerManager extends EntityManager {
           }
           break;
         case CONTROLLER_ENUM.TURNRIGHT:
+          nextState = ENTITY_STATE_ENUM.BLOCKTURNRIGHT;
           switch (direction) {
             case DIRECTION_ENUM.TOP:
               weapenNextAbsPos.x += 1;
@@ -184,6 +204,7 @@ export class PlayerManager extends EntityManager {
       ) {
         // empty
       } else {
+        this.state = nextState;
         return true;
       }
     }
@@ -221,6 +242,23 @@ export class PlayerManager extends EntityManager {
             break;
         }
         this.state = ENTITY_STATE_ENUM.TURNLEFT;
+        break;
+      case CONTROLLER_ENUM.TURNRIGHT:
+        switch (this.direction) {
+          case DIRECTION_ENUM.TOP:
+            this.direction = DIRECTION_ENUM.RIGHT;
+            break;
+          case DIRECTION_ENUM.LEFT:
+            this.direction = DIRECTION_ENUM.TOP;
+            break;
+          case DIRECTION_ENUM.BOTTOM:
+            this.direction = DIRECTION_ENUM.LEFT;
+            break;
+          case DIRECTION_ENUM.RIGHT:
+            this.direction = DIRECTION_ENUM.BOTTOM;
+            break;
+        }
+        this.state = ENTITY_STATE_ENUM.TURNRIGHT;
         break;
     }
     // console.log(this.targetX, this.targetY, this.x, this.y);
