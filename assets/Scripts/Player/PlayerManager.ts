@@ -17,15 +17,17 @@ export class PlayerManager extends EntityManager {
     await this.fsm.init();   // 有异步操作，使用Promise list等待所有资源加载后才退出
 
     super.init({
-      x: 0,
-      y: 0,
+      x: 2,
+      y: 8,
       type: ENTITY_TYPE_ENUM.PLAYER,
       direction: DIRECTION_ENUM.TOP,
       state: ENTITY_STATE_ENUM.IDLE
     })
+    this.targetX = this.x;
+    this.targetY = this.y;
 
     // 注册监听事件
-    EventManager.Instance.on(EVENT_ENUM.PLAYER_CTRL, this.move, this);
+    EventManager.Instance.on(EVENT_ENUM.PLAYER_CTRL, this.inputHandle, this);
   }
 
   update() {
@@ -50,6 +52,143 @@ export class PlayerManager extends EntityManager {
       this.x = this.targetX;
       this.y = this.targetY;
     }
+  }
+
+  inputHandle(inputDirection: CONTROLLER_ENUM) {
+    if (this.willBlock(inputDirection)) {
+      console.log('will block');
+      return;
+    }
+
+    this.move(inputDirection)
+  }
+
+  willBlock(inputDirection: CONTROLLER_ENUM) {
+    const {targetX: x, targetY: y, direction} = this;
+    const {tileInfo} = DataManager.Instance;
+
+    const playerNextAbsPos = {x: 0, y: 0};
+    const weapenNextAbsPos = {x: 0, y: 0};
+
+    if (
+      inputDirection === CONTROLLER_ENUM.TOP ||
+      inputDirection === CONTROLLER_ENUM.BOTTOM ||
+      inputDirection === CONTROLLER_ENUM.LEFT ||
+      inputDirection === CONTROLLER_ENUM.RIGHT
+    ) {
+      switch (inputDirection) {
+        case CONTROLLER_ENUM.TOP:
+          playerNextAbsPos.y -= 1;
+          weapenNextAbsPos.y -= 1;
+          break;
+        case CONTROLLER_ENUM.BOTTOM:
+          playerNextAbsPos.y += 1;
+          weapenNextAbsPos.y += 1;
+          break;
+        case CONTROLLER_ENUM.LEFT:
+          playerNextAbsPos.x -= 1;
+          weapenNextAbsPos.x -= 1;
+          break;
+        case CONTROLLER_ENUM.RIGHT:
+          playerNextAbsPos.x += 1;
+          weapenNextAbsPos.x += 1;
+          break;
+      }
+      // console.log('inputDirection', playerNextAbsPos, weapenNextAbsPos);
+      switch (direction) {
+        case DIRECTION_ENUM.TOP:
+          weapenNextAbsPos.y -= 1;
+          break;
+        case DIRECTION_ENUM.BOTTOM:
+          weapenNextAbsPos.y += 1;
+          break;
+        case DIRECTION_ENUM.LEFT:
+          weapenNextAbsPos.x -= 1;
+          break;
+        case DIRECTION_ENUM.RIGHT:
+          weapenNextAbsPos.x += 1;
+          break;
+      }
+      // console.log('direction', playerNextAbsPos, weapenNextAbsPos);
+
+      const playerNextX = x + playerNextAbsPos.x;
+      const playerNextY = y + playerNextAbsPos.y;
+      const weapenNextX = x + weapenNextAbsPos.x;
+      const weapenNextY = y + weapenNextAbsPos.y;
+      if (playerNextY < 0 || playerNextX < 0) {
+        return true;
+      }
+
+      const playerTile = tileInfo[playerNextX][playerNextY]
+      const weapenTile = tileInfo[weapenNextX][weapenNextY]
+
+      if (playerTile && playerTile.moveable && (!weapenTile || weapenTile.turnable)) {
+        // empty
+      } else {
+        return true;
+      }
+    } else if (
+      inputDirection === CONTROLLER_ENUM.TURNLEFT ||
+      inputDirection === CONTROLLER_ENUM.TURNRIGHT
+    ) {
+      switch (inputDirection) {
+        case CONTROLLER_ENUM.TURNLEFT:
+          switch (direction) {
+            case DIRECTION_ENUM.TOP:
+              weapenNextAbsPos.x -= 1;
+              weapenNextAbsPos.y -= 1;
+              break;
+            case DIRECTION_ENUM.BOTTOM:
+              weapenNextAbsPos.x += 1;
+              weapenNextAbsPos.y += 1;
+              break;
+            case DIRECTION_ENUM.LEFT:
+              weapenNextAbsPos.x -= 1;
+              weapenNextAbsPos.y += 1;
+              break;
+            case DIRECTION_ENUM.RIGHT:
+              weapenNextAbsPos.x += 1;
+              weapenNextAbsPos.y -= 1;
+              break;
+          }
+          break;
+        case CONTROLLER_ENUM.TURNRIGHT:
+          switch (direction) {
+            case DIRECTION_ENUM.TOP:
+              weapenNextAbsPos.x += 1;
+              weapenNextAbsPos.y -= 1;
+              break;
+            case DIRECTION_ENUM.BOTTOM:
+              weapenNextAbsPos.x -= 1;
+              weapenNextAbsPos.y += 1;
+              break;
+            case DIRECTION_ENUM.LEFT:
+              weapenNextAbsPos.x -= 1;
+              weapenNextAbsPos.y -= 1;
+              break;
+            case DIRECTION_ENUM.RIGHT:
+              weapenNextAbsPos.x += 1;
+              weapenNextAbsPos.y += 1;
+              break;
+          }
+          break;
+      }
+      // console.log('inputDirection, direction', weapenNextAbsPos);
+      const weapenNextX = x + weapenNextAbsPos.x;
+      const weapenNextY = y + weapenNextAbsPos.y;
+
+      if (
+        (!tileInfo[x][weapenNextY] || tileInfo[x][weapenNextY].turnable) &&
+        (!tileInfo[weapenNextX][y] || tileInfo[weapenNextX][y].turnable) &&
+        (!tileInfo[weapenNextX][weapenNextY] || tileInfo[weapenNextX][weapenNextY].turnable)
+      ) {
+        // empty
+      } else {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   move(inputDirection: CONTROLLER_ENUM) {
