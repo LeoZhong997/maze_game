@@ -10,6 +10,7 @@ const { ccclass, property } = _decorator;
 export class PlayerManager extends EntityManager {
   targetX: number = 0;
   targetY: number = 0;
+  isMoving = false;
   private readonly speed = 1 / 10;
 
   async init() {
@@ -48,9 +49,15 @@ export class PlayerManager extends EntityManager {
       this.y += this.speed;
     }
 
-    if (Math.abs(this.targetX - this.x) <= this.speed && Math.abs(this.targetY - this.y) <= this.speed) {
+    if (
+      Math.abs(this.targetX - this.x) <= this.speed &&
+      Math.abs(this.targetY - this.y) <= this.speed &&
+      this.isMoving
+    ) {
+      this.isMoving = false;
       this.x = this.targetX;
       this.y = this.targetY;
+      EventManager.Instance.emit(EVENT_ENUM.PLAYER_MOVE_END);
     }
   }
 
@@ -216,15 +223,19 @@ export class PlayerManager extends EntityManager {
     switch (inputDirection) {
       case CONTROLLER_ENUM.TOP:
         this.targetY -= 1;
+        this.isMoving = true;
         break;
       case CONTROLLER_ENUM.BOTTOM:
         this.targetY += 1;
+        this.isMoving = true;
         break;
       case CONTROLLER_ENUM.LEFT:
         this.targetX -= 1;
+        this.isMoving = true;
         break;
       case CONTROLLER_ENUM.RIGHT:
         this.targetX += 1;
+        this.isMoving = true;
         break;
       case CONTROLLER_ENUM.TURNLEFT:
         switch (this.direction) {
@@ -241,6 +252,7 @@ export class PlayerManager extends EntityManager {
             this.direction = DIRECTION_ENUM.TOP;
             break;
         }
+        EventManager.Instance.emit(EVENT_ENUM.PLAYER_MOVE_END)
         this.state = ENTITY_STATE_ENUM.TURNLEFT;
         break;
       case CONTROLLER_ENUM.TURNRIGHT:
@@ -258,6 +270,7 @@ export class PlayerManager extends EntityManager {
             this.direction = DIRECTION_ENUM.BOTTOM;
             break;
         }
+        EventManager.Instance.emit(EVENT_ENUM.PLAYER_MOVE_END)
         this.state = ENTITY_STATE_ENUM.TURNRIGHT;
         break;
     }

@@ -12,8 +12,9 @@
     "README": "markdown"
   },
   "files.exclude": {
-    "**/*/adapters/index.ts": true,
-    "**/*/adapters/index.js": true
+    "**/*.meta": true,
+    "**/*/adapters/index.js": true,
+    "**/*/adapters/index.ts": true
   },
   "search.useIgnoreFiles": true,
   "search.exclude": {

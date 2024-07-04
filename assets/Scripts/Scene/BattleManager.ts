@@ -65,31 +65,34 @@ export class BattleManager extends Component {
     console.log('stage.parent=', this.stage.parent.name)
   }
 
-  generateTileMap() {
+  async generateTileMap() {
     const tileMap = createUINode('tileMap')
     tileMap.setParent(this.stage)
     console.log('tileMap.parent=', tileMap.parent.name)
 
     const tileMapManger = tileMap.addComponent(TileMapManager)
-    tileMapManger.init()
+    await tileMapManger.init()
 
     this.adaptPos()
   }
 
-  generatePlayer() {
-    const player = createUINode('player')
-    player.setParent(this.stage)
+  async generatePlayer() {
+    const player = createUINode('player');
+    player.setParent(this.stage);
 
-    const playerManger = player.addComponent(PlayerManager)
-    playerManger.init()
+    const playerManger = player.addComponent(PlayerManager);
+    await playerManger.init();
+    DataManager.Instance.player = playerManger;
+    EventManager.Instance.emit(EVENT_ENUM.PLAYER_BORN, true);
   }
 
-  generateEnemies() {
+  async generateEnemies() {
     const enemy = createUINode('enemy')
     enemy.setParent(this.stage)
 
     const woodenSkeletonManager = enemy.addComponent(WoodenSkeletonManager)
-    woodenSkeletonManager.init()
+    await woodenSkeletonManager.init()
+    DataManager.Instance.enemies.push(woodenSkeletonManager);
   }
 
   adaptPos() {
