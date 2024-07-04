@@ -13,16 +13,18 @@ export class WoodenSkeletonManager extends EntityManager {
     await this.fsm.init();   // 有异步操作，使用Promise list等待所有资源加载后才退出
 
     super.init({
-      x: 7,
-      y: 7,
-      type: ENTITY_TYPE_ENUM.PLAYER,
+      x: 2,
+      y: 4,
+      type: ENTITY_TYPE_ENUM.ENEMY,
       direction: DIRECTION_ENUM.TOP,
       state: ENTITY_STATE_ENUM.IDLE
     })
 
     EventManager.Instance.on(EVENT_ENUM.PLAYER_MOVE_END, this.onChangeDirection, this);
+    EventManager.Instance.on(EVENT_ENUM.PLAYER_MOVE_END, this.onAttack, this);
     // 初次加载时，玩家可能比敌人后加载完成，需要刷新一次方向
     EventManager.Instance.on(EVENT_ENUM.PLAYER_BORN, this.onChangeDirection, this);
+    this.onChangeDirection(true);
   }
 
   /**
@@ -55,6 +57,19 @@ export class WoodenSkeletonManager extends EntityManager {
     } else if (playerX >= this.x && playerY >= this.y) {
       // 第四象限
       this.direction = disX > disY ? DIRECTION_ENUM.RIGHT : DIRECTION_ENUM.BOTTOM;
+    }
+  }
+
+  onAttack() {
+    const {x: playerX, y: playerY} = DataManager.Instance.player;
+
+    if (
+      (this.x === playerX && Math.abs(this.y - playerY) <= 1) ||
+      (this.y === playerY && Math.abs(this.x - playerX) <= 1)
+    ) {
+      this.state = ENTITY_STATE_ENUM.ATTACK;
+    } else {
+      this.state = ENTITY_STATE_ENUM.IDLE;
     }
   }
 }
