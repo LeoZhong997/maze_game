@@ -1,4 +1,4 @@
-import { Node, UITransform, Layers } from 'cc'
+import { Node, UITransform, Layers, SpriteFrame } from 'cc'
 
 export const createUINode = (name: string = '') => {
   const node = new Node(name)
@@ -14,3 +14,14 @@ export const createUINode = (name: string = '') => {
 }
 
 export const randomByRange = (min: number, max: number) => Math.floor(Math.random() * (max - min) + min)
+
+const reg = /\((\d+)\)/   // 匹配括号中的数字
+
+const getNunberWithinString = (str: string) => {
+  return parseInt(str.match(reg)[1] || '0');
+}
+export const sortSpriteFrame = (spriteFrames: SpriteFrame[]) => {
+  return spriteFrames.sort((a, b) => {
+    return getNunberWithinString(a.name) - getNunberWithinString(b.name);
+  })  // 从小到大排序
+}

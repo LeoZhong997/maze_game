@@ -1,16 +1,15 @@
 import { _decorator, Component, Sprite, UITransform } from "cc";
 import { CONTROLLER_ENUM, DIRECTION_ENUM, DIRECTION_ORDER_ENUM, ENTITY_STATE_ENUM, ENTITY_TYPE_ENUM, EVENT_ENUM, PARAMS_NAME_ENUM } from "../Enums";
-import EventManager from "../Runtime/EventManager";
-import { PlayerStateMachine } from "../Scripts/Player/PLayerStateMachine";
 import { TILE_HEIGHT, TILE_WIDTH } from "../Scripts/Tile/TileManager";
 import { IEntity } from "../Levels";
+import { StateMachine } from "./StateMachine";
 const { ccclass, property } = _decorator;
 
 @ccclass('EntityManager')
 export class EntityManager extends Component {
   x: number = 0;
   y: number = 0;
-  fsm: PlayerStateMachine;
+  fsm: StateMachine;
 
   private _direction: DIRECTION_ENUM;
   private _state: ENTITY_STATE_ENUM;

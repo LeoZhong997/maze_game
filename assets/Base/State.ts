@@ -1,6 +1,7 @@
 import { AnimationClip, Sprite, SpriteFrame, UITransform, animation } from "cc";
 import ResourceManager from "../Runtime/ResourceManager";
 import { StateMachine } from "./StateMachine";
+import { sortSpriteFrame } from "../Utils";
 
 const ANIMATION_SPEED = 1 / 8
 
@@ -33,7 +34,8 @@ export default class State {
     // 指定轨道路径，即指定组件为 Sprite 的 "spriteFrame" 属性
     track.path = new animation.TrackPath().toComponent(Sprite).toProperty('spriteFrame');
     // 获取关键帧列表：时间；变化的属性，即spriteFrame
-    const frames: Array<[number, SpriteFrame]> = spriteFrames.map(
+    // sortSpriteFrame修复异步资源加载顺序不一致的问题
+    const frames: Array<[number, SpriteFrame]> = sortSpriteFrame(spriteFrames).map(
       (spriteFrame, index) => [ANIMATION_SPEED * index, spriteFrame]);
     // 为单通道的曲线添加关键帧
     track.channel.curve.assignSorted(frames);
