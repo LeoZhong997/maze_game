@@ -1,0 +1,27 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			".code-workspace": "jsonc",
+			".babelrc": "json",
+			".eslintrc": "jsonc",
+			".eslintrc*.json": "jsonc",
+			".stylelintrc": "jsonc",
+			"stylelintrc": "jsonc",
+			".htmlhintrc": "jsonc",
+			"htmlhintrc": "jsonc",
+			"Procfile*": "shellscript",
+			"README": "markdown"
+		},
+		"javascript.validate.enable": false,
+		"typescript.validate.enable": true,
+		"javascript.format.enable": false,
+		"typescript.format.enable": false,
+		"json.format.enable": true,
+		"typescript.tsdk": "node_modules/typescript/lib"
+	}
+}

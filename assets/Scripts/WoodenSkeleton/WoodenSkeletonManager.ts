@@ -1,24 +1,31 @@
-import { _decorator } from "cc";
-import { CONTROLLER_ENUM, DIRECTION_ENUM, DIRECTION_ORDER_ENUM, ENTITY_STATE_ENUM, ENTITY_TYPE_ENUM, EVENT_ENUM } from "../../Enums";
-import { EntityManager } from "../../Base/EntityManager";
-import { WoodenSkeletonStateMachine } from "./WoodenSkeletonStateManager";
-import EventManager from "../../Runtime/EventManager";
-import DataManager from "../../Runtime/DataManager";
+import { _decorator } from 'cc';
+import {
+  CONTROLLER_ENUM,
+  DIRECTION_ENUM,
+  DIRECTION_ORDER_ENUM,
+  ENTITY_STATE_ENUM,
+  ENTITY_TYPE_ENUM,
+  EVENT_ENUM,
+} from '../../Enums';
+import { EntityManager } from '../../Base/EntityManager';
+import { WoodenSkeletonStateMachine } from './WoodenSkeletonStateManager';
+import EventManager from '../../Runtime/EventManager';
+import DataManager from '../../Runtime/DataManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('WoodenSkeletonManager')
 export class WoodenSkeletonManager extends EntityManager {
   async init() {
     this.fsm = this.addComponent(WoodenSkeletonStateMachine);
-    await this.fsm.init();   // 有异步操作，使用Promise list等待所有资源加载后才退出
+    await this.fsm.init(); // 有异步操作，使用Promise list等待所有资源加载后才退出
 
     super.init({
-      x: 2,
-      y: 4,
+      x: 3,
+      y: 5,
       type: ENTITY_TYPE_ENUM.ENEMY,
       direction: DIRECTION_ENUM.TOP,
-      state: ENTITY_STATE_ENUM.IDLE
-    })
+      state: ENTITY_STATE_ENUM.IDLE,
+    });
 
     EventManager.Instance.on(EVENT_ENUM.PLAYER_MOVE_END, this.onChangeDirection, this);
     EventManager.Instance.on(EVENT_ENUM.PLAYER_MOVE_END, this.onAttack, this);
@@ -36,7 +43,7 @@ export class WoodenSkeletonManager extends EntityManager {
     if (!DataManager.Instance.player) {
       return;
     }
-    const {x: playerX, y: playerY} = DataManager.Instance.player;
+    const { x: playerX, y: playerY } = DataManager.Instance.player;
 
     const disX = Math.abs(this.x - playerX);
     const disY = Math.abs(this.y - playerY);
@@ -61,11 +68,11 @@ export class WoodenSkeletonManager extends EntityManager {
   }
 
   onAttack() {
-    const {x: playerX, y: playerY, state: plyerState } = DataManager.Instance.player;
+    const { x: playerX, y: playerY, state: plyerState } = DataManager.Instance.player;
 
     if (
       ((this.x === playerX && Math.abs(this.y - playerY) <= 1) ||
-      (this.y === playerY && Math.abs(this.x - playerX) <= 1)) &&
+        (this.y === playerY && Math.abs(this.x - playerX) <= 1)) &&
       plyerState !== ENTITY_STATE_ENUM.DEATH &&
       plyerState !== ENTITY_STATE_ENUM.AIRDEATH
     ) {

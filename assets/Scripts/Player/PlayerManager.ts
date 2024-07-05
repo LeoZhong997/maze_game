@@ -1,9 +1,9 @@
-import { _decorator } from "cc";
-import { CONTROLLER_ENUM, DIRECTION_ENUM, ENTITY_STATE_ENUM, ENTITY_TYPE_ENUM, EVENT_ENUM } from "../../Enums";
-import EventManager from "../../Runtime/EventManager";
-import { PlayerStateMachine } from "./PLayerStateMachine";
-import { EntityManager } from "../../Base/EntityManager";
-import DataManager from "../../Runtime/DataManager";
+import { _decorator } from 'cc';
+import { CONTROLLER_ENUM, DIRECTION_ENUM, ENTITY_STATE_ENUM, ENTITY_TYPE_ENUM, EVENT_ENUM } from '../../Enums';
+import EventManager from '../../Runtime/EventManager';
+import { PlayerStateMachine } from './PLayerStateMachine';
+import { EntityManager } from '../../Base/EntityManager';
+import DataManager from '../../Runtime/DataManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerManager')
@@ -15,15 +15,15 @@ export class PlayerManager extends EntityManager {
 
   async init() {
     this.fsm = this.addComponent(PlayerStateMachine);
-    await this.fsm.init();   // 有异步操作，使用Promise list等待所有资源加载后才退出
+    await this.fsm.init(); // 有异步操作，使用Promise list等待所有资源加载后才退出
 
     super.init({
       x: 2,
       y: 8,
       type: ENTITY_TYPE_ENUM.PLAYER,
       direction: DIRECTION_ENUM.TOP,
-      state: ENTITY_STATE_ENUM.IDLE
-    })
+      state: ENTITY_STATE_ENUM.IDLE,
+    });
     this.targetX = this.x;
     this.targetY = this.y;
 
@@ -74,20 +74,77 @@ export class PlayerManager extends EntityManager {
       return;
     }
 
+    if (this.willAttack(inputDirection)) {
+      return;
+    }
+
     if (this.willBlock(inputDirection)) {
       console.log('will block');
       return;
     }
 
-    this.move(inputDirection)
+    this.move(inputDirection);
+  }
+
+  willAttack(inputDirection: CONTROLLER_ENUM) {
+    const enemies = DataManager.Instance.enemies;
+    const { targetX: x, targetY: y, direction } = this;
+    const weapenNextAbsPos = { x: 0, y: 0 };
+    if (
+      inputDirection === CONTROLLER_ENUM.TOP ||
+      inputDirection === CONTROLLER_ENUM.BOTTOM ||
+      inputDirection === CONTROLLER_ENUM.LEFT ||
+      inputDirection === CONTROLLER_ENUM.RIGHT
+    ) {
+      switch (inputDirection) {
+        case CONTROLLER_ENUM.TOP:
+          weapenNextAbsPos.y -= 1;
+          break;
+        case CONTROLLER_ENUM.BOTTOM:
+          weapenNextAbsPos.y += 1;
+          break;
+        case CONTROLLER_ENUM.LEFT:
+          weapenNextAbsPos.x -= 1;
+          break;
+        case CONTROLLER_ENUM.RIGHT:
+          weapenNextAbsPos.x += 1;
+          break;
+      }
+      switch (direction) {
+        case DIRECTION_ENUM.TOP:
+          weapenNextAbsPos.y -= 1;
+          break;
+        case DIRECTION_ENUM.BOTTOM:
+          weapenNextAbsPos.y += 1;
+          break;
+        case DIRECTION_ENUM.LEFT:
+          weapenNextAbsPos.x -= 1;
+          break;
+        case DIRECTION_ENUM.RIGHT:
+          weapenNextAbsPos.x += 1;
+          break;
+      }
+    }
+    for (let i = 0; i < enemies.length; i++) {
+      const enemy = enemies[i];
+      if (enemy.state === ENTITY_STATE_ENUM.DEATH || enemy.state === ENTITY_STATE_ENUM.AIRDEATH) {
+        continue;
+      }
+      const { x: enemyX, y: enemyY } = enemy;
+      if (enemyX === x + weapenNextAbsPos.x && enemyY === y + weapenNextAbsPos.y) {
+        this.state = ENTITY_STATE_ENUM.ATTACK;
+        return true;
+      }
+    }
+    return false;
   }
 
   willBlock(inputDirection: CONTROLLER_ENUM) {
-    const {targetX: x, targetY: y, direction} = this;
-    const {tileInfo} = DataManager.Instance;
+    const { targetX: x, targetY: y, direction } = this;
+    const { tileInfo } = DataManager.Instance;
 
-    const playerNextAbsPos = {x: 0, y: 0};
-    const weapenNextAbsPos = {x: 0, y: 0};
+    const playerNextAbsPos = { x: 0, y: 0 };
+    const weapenNextAbsPos = { x: 0, y: 0 };
 
     if (
       inputDirection === CONTROLLER_ENUM.TOP ||
@@ -96,7 +153,7 @@ export class PlayerManager extends EntityManager {
       inputDirection === CONTROLLER_ENUM.RIGHT
     ) {
       let nextState: ENTITY_STATE_ENUM = ENTITY_STATE_ENUM.IDLE;
-      switch(inputDirection) {
+      switch (inputDirection) {
         case CONTROLLER_ENUM.TOP:
           nextState = ENTITY_STATE_ENUM.BLOCKFRONT;
           break;
@@ -154,8 +211,8 @@ export class PlayerManager extends EntityManager {
         return true;
       }
 
-      const playerTile = tileInfo[playerNextX][playerNextY]
-      const weapenTile = tileInfo[weapenNextX][weapenNextY]
+      const playerTile = tileInfo[playerNextX][playerNextY];
+      const weapenTile = tileInfo[weapenNextX][weapenNextY];
 
       if (playerTile && playerTile.moveable && (!weapenTile || weapenTile.turnable)) {
         // empty
@@ -163,11 +220,8 @@ export class PlayerManager extends EntityManager {
         this.state = nextState;
         return true;
       }
-    } else if (
-      inputDirection === CONTROLLER_ENUM.TURNLEFT ||
-      inputDirection === CONTROLLER_ENUM.TURNRIGHT
-    ) {
-      let nextState: ENTITY_STATE_ENUM = ENTITY_STATE_ENUM.IDLE;;
+    } else if (inputDirection === CONTROLLER_ENUM.TURNLEFT || inputDirection === CONTROLLER_ENUM.TURNRIGHT) {
+      let nextState: ENTITY_STATE_ENUM = ENTITY_STATE_ENUM.IDLE;
       switch (inputDirection) {
         case CONTROLLER_ENUM.TURNLEFT:
           nextState = ENTITY_STATE_ENUM.BLOCKTURNLEFT;
@@ -264,7 +318,7 @@ export class PlayerManager extends EntityManager {
             this.direction = DIRECTION_ENUM.TOP;
             break;
         }
-        EventManager.Instance.emit(EVENT_ENUM.PLAYER_MOVE_END)
+        EventManager.Instance.emit(EVENT_ENUM.PLAYER_MOVE_END);
         this.state = ENTITY_STATE_ENUM.TURNLEFT;
         break;
       case CONTROLLER_ENUM.TURNRIGHT:
@@ -282,7 +336,7 @@ export class PlayerManager extends EntityManager {
             this.direction = DIRECTION_ENUM.BOTTOM;
             break;
         }
-        EventManager.Instance.emit(EVENT_ENUM.PLAYER_MOVE_END)
+        EventManager.Instance.emit(EVENT_ENUM.PLAYER_MOVE_END);
         this.state = ENTITY_STATE_ENUM.TURNRIGHT;
         break;
     }

@@ -1,17 +1,18 @@
-import { _decorator, Animation } from "cc";
-import { ENTITY_STATE_ENUM, FSM_PARAM_TYPE_ENUM, PARAMS_NAME_ENUM } from "../../Enums";
-import { StateMachine, getInitParamsNumber, getInitParamsTrigger } from "../../Base/StateMachine";
-import IdleSubStateMachine from "./IdleSubStateMachine";
-import TurnLeftSubStateMachine from "./TurnLeftSubStateMachine";
-import BlockFrontSubStateMachine from "./BlockFrontSubStateMachine";
-import { EntityManager } from "../../Base/EntityManager";
-import BlockTurnLeftSubStateMachine from "./BlockTurnLeftSubStateMachine";
-import BlockBackSubStateMachine from "./BlockBackSubStateMachine";
-import BlockLeftSubStateMachine from "./BlockLeftSubStateMachine";
-import BlockRightSubStateMachine from "./BlockRightSubStateMachine";
-import BlockTurnRightSubStateMachine from "./BlockTurnRightSubStateMachine";
-import TurnRightSubStateMachine from "./TurnRightSubStateMachine";
-import DeathSubStateMachine from "./DeathSubStateMachine";
+import { _decorator, Animation } from 'cc';
+import { ENTITY_STATE_ENUM, FSM_PARAM_TYPE_ENUM, PARAMS_NAME_ENUM } from '../../Enums';
+import { StateMachine, getInitParamsNumber, getInitParamsTrigger } from '../../Base/StateMachine';
+import IdleSubStateMachine from './IdleSubStateMachine';
+import TurnLeftSubStateMachine from './TurnLeftSubStateMachine';
+import BlockFrontSubStateMachine from './BlockFrontSubStateMachine';
+import { EntityManager } from '../../Base/EntityManager';
+import BlockTurnLeftSubStateMachine from './BlockTurnLeftSubStateMachine';
+import BlockBackSubStateMachine from './BlockBackSubStateMachine';
+import BlockLeftSubStateMachine from './BlockLeftSubStateMachine';
+import BlockRightSubStateMachine from './BlockRightSubStateMachine';
+import BlockTurnRightSubStateMachine from './BlockTurnRightSubStateMachine';
+import TurnRightSubStateMachine from './TurnRightSubStateMachine';
+import DeathSubStateMachine from './DeathSubStateMachine';
+import AttackSubStateMachine from './AttackSubStateMachine';
 const { ccclass, property } = _decorator;
 
 type ParamsValueType = boolean | number;
@@ -27,14 +28,15 @@ export class PlayerStateMachine extends StateMachine {
     this.animationComponent = this.addComponent(Animation);
 
     this.initParams();
-    this.initStateMachine();  // 初始化状态机，加载动画
+    this.initStateMachine(); // 初始化状态机，加载动画
     this.initAnimationEvent();
 
-    await Promise.all(this.waitingList);   // 等待所有资源都加载完成
+    await Promise.all(this.waitingList); // 等待所有资源都加载完成
   }
 
   initParams() {
     this.params.set(PARAMS_NAME_ENUM.IDLE, getInitParamsTrigger());
+    this.params.set(PARAMS_NAME_ENUM.ATTACK, getInitParamsTrigger());
     this.params.set(PARAMS_NAME_ENUM.DEATH, getInitParamsTrigger());
     this.params.set(PARAMS_NAME_ENUM.TURNLEFT, getInitParamsTrigger());
     this.params.set(PARAMS_NAME_ENUM.TURNRIGHT, getInitParamsTrigger());
@@ -50,6 +52,7 @@ export class PlayerStateMachine extends StateMachine {
   initStateMachine() {
     // State的构造函数中有异步加载动画资源
     this.stateMachines.set(PARAMS_NAME_ENUM.IDLE, new IdleSubStateMachine(this));
+    this.stateMachines.set(PARAMS_NAME_ENUM.ATTACK, new AttackSubStateMachine(this));
     this.stateMachines.set(PARAMS_NAME_ENUM.DEATH, new DeathSubStateMachine(this));
     this.stateMachines.set(PARAMS_NAME_ENUM.TURNLEFT, new TurnLeftSubStateMachine(this));
     this.stateMachines.set(PARAMS_NAME_ENUM.TURNRIGHT, new TurnRightSubStateMachine(this));
@@ -64,16 +67,17 @@ export class PlayerStateMachine extends StateMachine {
   initAnimationEvent() {
     this.animationComponent.on(Animation.EventType.FINISHED, () => {
       const name = this.animationComponent.defaultClip.name;
-      const whiteList = ['turn', 'block'];
+      const whiteList = ['turn', 'block', 'attack'];
       if (whiteList.some(v => name.includes(v))) {
         this.node.getComponent(EntityManager).state = ENTITY_STATE_ENUM.IDLE;
       }
-    })
+    });
   }
 
   run() {
-    switch(this.currentState) {
+    switch (this.currentState) {
       case this.stateMachines.get(PARAMS_NAME_ENUM.IDLE):
+      case this.stateMachines.get(PARAMS_NAME_ENUM.ATTACK):
       case this.stateMachines.get(PARAMS_NAME_ENUM.DEATH):
       case this.stateMachines.get(PARAMS_NAME_ENUM.TURNLEFT):
       case this.stateMachines.get(PARAMS_NAME_ENUM.TURNRIGHT):
@@ -84,32 +88,34 @@ export class PlayerStateMachine extends StateMachine {
       case this.stateMachines.get(PARAMS_NAME_ENUM.BLOCKTURNLEFT):
       case this.stateMachines.get(PARAMS_NAME_ENUM.BLOCKTURNRIGHT):
         // 通过Trigger参数检测是否需要切换状态
-        if(this.params.get(PARAMS_NAME_ENUM.TURNLEFT).value) {
-          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.TURNLEFT)
-        } else if(this.params.get(PARAMS_NAME_ENUM.TURNRIGHT).value) {
-          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.TURNRIGHT)
-        } else if(this.params.get(PARAMS_NAME_ENUM.BLOCKFRONT).value) {
-          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.BLOCKFRONT)
-        } else if(this.params.get(PARAMS_NAME_ENUM.BLOCKBACK).value) {
-          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.BLOCKBACK)
-        } else if(this.params.get(PARAMS_NAME_ENUM.BLOCKLEFT).value) {
-          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.BLOCKLEFT)
-        } else if(this.params.get(PARAMS_NAME_ENUM.BLOCKRIGHT).value) {
-          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.BLOCKRIGHT)
-        } else if(this.params.get(PARAMS_NAME_ENUM.BLOCKTURNLEFT).value) {
-          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.BLOCKTURNLEFT)
-        } else if(this.params.get(PARAMS_NAME_ENUM.BLOCKTURNRIGHT).value) {
-          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.BLOCKTURNRIGHT)
-        } else if(this.params.get(PARAMS_NAME_ENUM.IDLE).value) {
-          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.IDLE)
-        } else if(this.params.get(PARAMS_NAME_ENUM.DEATH).value) {
-          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.DEATH)
+        if (this.params.get(PARAMS_NAME_ENUM.TURNLEFT).value) {
+          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.TURNLEFT);
+        } else if (this.params.get(PARAMS_NAME_ENUM.TURNRIGHT).value) {
+          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.TURNRIGHT);
+        } else if (this.params.get(PARAMS_NAME_ENUM.BLOCKFRONT).value) {
+          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.BLOCKFRONT);
+        } else if (this.params.get(PARAMS_NAME_ENUM.BLOCKBACK).value) {
+          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.BLOCKBACK);
+        } else if (this.params.get(PARAMS_NAME_ENUM.BLOCKLEFT).value) {
+          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.BLOCKLEFT);
+        } else if (this.params.get(PARAMS_NAME_ENUM.BLOCKRIGHT).value) {
+          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.BLOCKRIGHT);
+        } else if (this.params.get(PARAMS_NAME_ENUM.BLOCKTURNLEFT).value) {
+          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.BLOCKTURNLEFT);
+        } else if (this.params.get(PARAMS_NAME_ENUM.BLOCKTURNRIGHT).value) {
+          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.BLOCKTURNRIGHT);
+        } else if (this.params.get(PARAMS_NAME_ENUM.IDLE).value) {
+          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.IDLE);
+        } else if (this.params.get(PARAMS_NAME_ENUM.ATTACK).value) {
+          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.ATTACK);
+        } else if (this.params.get(PARAMS_NAME_ENUM.DEATH).value) {
+          this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.DEATH);
         } else {
-          this.currentState = this.currentState   // 方向改变时不需要切换状态
+          this.currentState = this.currentState; // 方向改变时不需要切换状态
         }
         break;
       default:
-        this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.IDLE)
+        this.currentState = this.stateMachines.get(PARAMS_NAME_ENUM.IDLE);
     }
   }
 }
