@@ -20,6 +20,7 @@ export enum EVENT_ENUM {
   PLAYER_MOVE_END = 'PLAYER_MOVE_END',
   PLAYER_BORN = 'PLAYER_BORN',
   ATTACK_PLAYER = 'ATTACK_PLAYER',
+  ATTACK_ENEMY = 'ATTACK_ENEMY',
 }
 
 export enum CONTROLLER_ENUM {
@@ -33,7 +34,7 @@ export enum CONTROLLER_ENUM {
 
 export enum FSM_PARAM_TYPE_ENUM {
   TRIGGER = 'TRIGGER',
-  NUMBER = 'NUMBER'
+  NUMBER = 'NUMBER',
 }
 
 export enum PARAMS_NAME_ENUM {
@@ -78,7 +79,7 @@ export enum DIRECTION_ORDER_ENUM {
   TOP = 0,
   BOTTOM = 1,
   LEFT = 2,
-  RIGHT = 3
+  RIGHT = 3,
 }
 
 export enum ENTITY_TYPE_ENUM {

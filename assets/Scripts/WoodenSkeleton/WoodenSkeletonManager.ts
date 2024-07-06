@@ -29,9 +29,18 @@ export class WoodenSkeletonManager extends EntityManager {
 
     EventManager.Instance.on(EVENT_ENUM.PLAYER_MOVE_END, this.onChangeDirection, this);
     EventManager.Instance.on(EVENT_ENUM.PLAYER_MOVE_END, this.onAttack, this);
+    EventManager.Instance.on(EVENT_ENUM.ATTACK_ENEMY, this.onDead, this);
     // 初次加载时，玩家可能比敌人后加载完成，需要刷新一次方向
     EventManager.Instance.on(EVENT_ENUM.PLAYER_BORN, this.onChangeDirection, this);
     this.onChangeDirection(true);
+  }
+
+  onDestroy() {
+    super.onDestroy();
+    EventManager.Instance.off(EVENT_ENUM.PLAYER_MOVE_END, this.onChangeDirection);
+    EventManager.Instance.off(EVENT_ENUM.PLAYER_MOVE_END, this.onAttack);
+    EventManager.Instance.off(EVENT_ENUM.ATTACK_ENEMY, this.onDead);
+    EventManager.Instance.off(EVENT_ENUM.PLAYER_BORN, this.onChangeDirection);
   }
 
   /**
@@ -40,7 +49,7 @@ export class WoodenSkeletonManager extends EntityManager {
    * @returns
    */
   onChangeDirection(isInit: boolean = false) {
-    if (!DataManager.Instance.player) {
+    if (this.state === ENTITY_STATE_ENUM.DEATH || !DataManager.Instance.player) {
       return;
     }
     const { x: playerX, y: playerY } = DataManager.Instance.player;
@@ -68,6 +77,9 @@ export class WoodenSkeletonManager extends EntityManager {
   }
 
   onAttack() {
+    if (this.state === ENTITY_STATE_ENUM.DEATH || !DataManager.Instance.player) {
+      return;
+    }
     const { x: playerX, y: playerY, state: plyerState } = DataManager.Instance.player;
 
     if (
@@ -80,6 +92,16 @@ export class WoodenSkeletonManager extends EntityManager {
       EventManager.Instance.emit(EVENT_ENUM.ATTACK_PLAYER, ENTITY_STATE_ENUM.DEATH);
     } else {
       this.state = ENTITY_STATE_ENUM.IDLE;
+    }
+  }
+
+  onDead(id: string) {
+    if (this.state === ENTITY_STATE_ENUM.DEATH && this.id !== id) {
+      return;
+    }
+
+    if (this.id === id) {
+      this.state = ENTITY_STATE_ENUM.DEATH;
     }
   }
 }

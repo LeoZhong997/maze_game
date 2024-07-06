@@ -32,6 +32,12 @@ export class PlayerManager extends EntityManager {
     EventManager.Instance.on(EVENT_ENUM.ATTACK_PLAYER, this.onDead, this);
   }
 
+  onDestroy() {
+    super.onDestroy();
+    EventManager.Instance.off(EVENT_ENUM.PLAYER_CTRL, this.inputHandle);
+    EventManager.Instance.off(EVENT_ENUM.ATTACK_PLAYER, this.onDead);
+  }
+
   update() {
     this.updateXY();
     super.update();
@@ -70,11 +76,18 @@ export class PlayerManager extends EntityManager {
     if (this.isMoving) {
       return;
     }
-    if (this.state === ENTITY_STATE_ENUM.DEATH || this.state === ENTITY_STATE_ENUM.AIRDEATH) {
+    if (
+      this.state === ENTITY_STATE_ENUM.DEATH ||
+      this.state === ENTITY_STATE_ENUM.AIRDEATH ||
+      this.state === ENTITY_STATE_ENUM.ATTACK
+    ) {
       return;
     }
 
-    if (this.willAttack(inputDirection)) {
+    const id = this.willAttack(inputDirection);
+    if (id) {
+      console.log(`will attack ${id}`);
+      EventManager.Instance.emit(EVENT_ENUM.ATTACK_ENEMY, id);
       return;
     }
 
@@ -87,7 +100,7 @@ export class PlayerManager extends EntityManager {
   }
 
   willAttack(inputDirection: CONTROLLER_ENUM) {
-    const enemies = DataManager.Instance.enemies;
+    const enemies = DataManager.Instance.enemies.filter(enemy => enemy.state !== ENTITY_STATE_ENUM.DEATH);
     const { targetX: x, targetY: y, direction } = this;
     const weapenNextAbsPos = { x: 0, y: 0 };
     if (
@@ -127,16 +140,13 @@ export class PlayerManager extends EntityManager {
     }
     for (let i = 0; i < enemies.length; i++) {
       const enemy = enemies[i];
-      if (enemy.state === ENTITY_STATE_ENUM.DEATH || enemy.state === ENTITY_STATE_ENUM.AIRDEATH) {
-        continue;
-      }
-      const { x: enemyX, y: enemyY } = enemy;
+      const { x: enemyX, y: enemyY, id: enemyId } = enemy;
       if (enemyX === x + weapenNextAbsPos.x && enemyY === y + weapenNextAbsPos.y) {
         this.state = ENTITY_STATE_ENUM.ATTACK;
-        return true;
+        return enemyId;
       }
     }
-    return false;
+    return '';
   }
 
   willBlock(inputDirection: CONTROLLER_ENUM) {
