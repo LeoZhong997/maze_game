@@ -22,7 +22,7 @@ export class WoodenSkeletonManager extends EntityManager {
     super.init({
       x: 3,
       y: 5,
-      type: ENTITY_TYPE_ENUM.ENEMY,
+      type: ENTITY_TYPE_ENUM.WOODEN_SKELETON,
       direction: DIRECTION_ENUM.TOP,
       state: ENTITY_STATE_ENUM.IDLE,
     });

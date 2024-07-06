@@ -88,6 +88,7 @@ export class PlayerManager extends EntityManager {
     if (id) {
       console.log(`will attack ${id}`);
       EventManager.Instance.emit(EVENT_ENUM.ATTACK_ENEMY, id);
+      EventManager.Instance.emit(EVENT_ENUM.DOOR_OPEN); // 击败敌人后再触发更好？
       return;
     }
 

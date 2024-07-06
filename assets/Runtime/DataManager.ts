@@ -1,11 +1,11 @@
-import Singleton from "../Base/Singleton";
-import { ITile } from "../Levels";
-import { PlayerManager } from "../Scripts/Player/PlayerManager";
-import { TileManager } from "../Scripts/Tile/TileManager";
-import { WoodenSkeletonManager } from "../Scripts/WoodenSkeleton/WoodenSkeletonManager";
+import Singleton from '../Base/Singleton';
+import { ITile } from '../Levels';
+import { DoorManager } from '../Scripts/Door/DoorManager';
+import { PlayerManager } from '../Scripts/Player/PlayerManager';
+import { TileManager } from '../Scripts/Tile/TileManager';
+import { WoodenSkeletonManager } from '../Scripts/WoodenSkeleton/WoodenSkeletonManager';
 
-export default class DataManager extends Singleton{
-
+export default class DataManager extends Singleton {
   static get Instance() {
     return super.getInstance<DataManager>();
   }
@@ -16,6 +16,7 @@ export default class DataManager extends Singleton{
   mapColCount: number = 0;
   levelIndex: number = 1;
   player: PlayerManager;
+  door: DoorManager;
   enemies: WoodenSkeletonManager[];
 
   reset() {
@@ -27,4 +28,3 @@ export default class DataManager extends Singleton{
     this.mapColCount = 0;
   }
 }
-
