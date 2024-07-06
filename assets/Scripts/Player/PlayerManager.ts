@@ -5,6 +5,7 @@ import { PlayerStateMachine } from './PLayerStateMachine';
 import { EntityManager } from '../../Base/EntityManager';
 import DataManager from '../../Runtime/DataManager';
 import { IEntity } from '../../Levels';
+import { TileManager } from '../Tile/TileManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerManager')
@@ -147,145 +148,164 @@ export class PlayerManager extends EntityManager {
 
   willBlock(inputDirection: CONTROLLER_ENUM) {
     const { targetX: x, targetY: y, direction } = this;
-    const { tileInfo } = DataManager.Instance;
+    const { tileInfo, enemies, door, mapRowCount: row, mapColCount: column } = DataManager.Instance;
 
-    const playerNextAbsPos = { x: 0, y: 0 };
-    const weapenNextAbsPos = { x: 0, y: 0 };
+    const getNextPositions = (dx: number, dy: number) => {
+      const nextX = x + dx;
+      const nextY = y + dy;
+      return { nextX, nextY };
+    };
 
-    if (
-      inputDirection === CONTROLLER_ENUM.TOP ||
-      inputDirection === CONTROLLER_ENUM.BOTTOM ||
-      inputDirection === CONTROLLER_ENUM.LEFT ||
-      inputDirection === CONTROLLER_ENUM.RIGHT
-    ) {
-      let nextState: ENTITY_STATE_ENUM = ENTITY_STATE_ENUM.IDLE;
-      switch (inputDirection) {
-        case CONTROLLER_ENUM.TOP:
-          nextState = ENTITY_STATE_ENUM.BLOCKFRONT;
-          break;
-        case CONTROLLER_ENUM.BOTTOM:
-          nextState = ENTITY_STATE_ENUM.BLOCKBACK;
-          break;
-        case CONTROLLER_ENUM.LEFT:
-          nextState = ENTITY_STATE_ENUM.BLOCKLEFT;
-          break;
-        case CONTROLLER_ENUM.RIGHT:
-          nextState = ENTITY_STATE_ENUM.BLOCKRIGHT;
-          break;
-      }
-      switch (inputDirection) {
-        case CONTROLLER_ENUM.TOP:
-          playerNextAbsPos.y -= 1;
-          weapenNextAbsPos.y -= 1;
-          break;
-        case CONTROLLER_ENUM.BOTTOM:
-          playerNextAbsPos.y += 1;
-          weapenNextAbsPos.y += 1;
-          break;
-        case CONTROLLER_ENUM.LEFT:
-          playerNextAbsPos.x -= 1;
-          weapenNextAbsPos.x -= 1;
-          break;
-        case CONTROLLER_ENUM.RIGHT:
-          playerNextAbsPos.x += 1;
-          weapenNextAbsPos.x += 1;
-          break;
-      }
-      // console.log('inputDirection', playerNextAbsPos, weapenNextAbsPos);
-      switch (direction) {
-        case DIRECTION_ENUM.TOP:
-          weapenNextAbsPos.y -= 1;
-          break;
-        case DIRECTION_ENUM.BOTTOM:
-          weapenNextAbsPos.y += 1;
-          break;
-        case DIRECTION_ENUM.LEFT:
-          weapenNextAbsPos.x -= 1;
-          break;
-        case DIRECTION_ENUM.RIGHT:
-          weapenNextAbsPos.x += 1;
-          break;
-      }
-      // console.log('direction', playerNextAbsPos, weapenNextAbsPos);
+    const isOutOfMap = (nextX: number, nextY: number) => nextX < 0 || nextY < 0 || nextX >= row || nextY >= column;
 
-      const playerNextX = x + playerNextAbsPos.x;
-      const playerNextY = y + playerNextAbsPos.y;
-      const weapenNextX = x + weapenNextAbsPos.x;
-      const weapenNextY = y + weapenNextAbsPos.y;
-      if (playerNextY < 0 || playerNextX < 0) {
-        this.state = nextState;
+    const isBlockingDoor = (nextX: number, nextY: number) =>
+      door && door.state !== ENTITY_STATE_ENUM.DEATH && door.x === nextX && door.y === nextY;
+
+    const isBlockingEnemy = (nextX: number, nextY: number) =>
+      enemies.some(enemy => enemy.state !== ENTITY_STATE_ENUM.DEATH && enemy.x === nextX && enemy.y === nextY);
+
+    // const isBlockingBurst = (nextX, nextY) =>
+    // bursts.some(burst => burst.state !== ENTITY_STATE_ENUM.DEATH && burst.x === nextX && burst.y === nextY);
+
+    const isBlockingTile = (nextPlayerTile: TileManager, nextWeaponTile: TileManager) =>
+      !nextPlayerTile || !nextPlayerTile.moveable || (nextWeaponTile && !nextWeaponTile.turnable);
+
+    const checkBlockingConditions = (
+      dx: number,
+      dy: number,
+      wdx: number,
+      wdy: number,
+      blockState: ENTITY_STATE_ENUM,
+    ) => {
+      const { nextX: playerNextX, nextY: playerNextY } = getNextPositions(dx, dy);
+      const { nextX: weaponNextX, nextY: weaponNextY } = getNextPositions(wdx, wdy);
+      const nextPlayerTile = tileInfo[playerNextX]?.[playerNextY];
+      const nextWeaponTile = tileInfo[weaponNextX]?.[weaponNextY];
+
+      if (isOutOfMap(playerNextX, playerNextY)) {
+        this.state = blockState;
         return true;
       }
-
-      const playerTile = tileInfo[playerNextX][playerNextY];
-      const weapenTile = tileInfo[weapenNextX][weapenNextY];
-
-      if (playerTile && playerTile.moveable && (!weapenTile || weapenTile.turnable)) {
-        // empty
-      } else {
-        this.state = nextState;
-        return true;
-      }
-    } else if (inputDirection === CONTROLLER_ENUM.TURNLEFT || inputDirection === CONTROLLER_ENUM.TURNRIGHT) {
-      let nextState: ENTITY_STATE_ENUM = ENTITY_STATE_ENUM.IDLE;
-      switch (inputDirection) {
-        case CONTROLLER_ENUM.TURNLEFT:
-          nextState = ENTITY_STATE_ENUM.BLOCKTURNLEFT;
-          switch (direction) {
-            case DIRECTION_ENUM.TOP:
-              weapenNextAbsPos.x -= 1;
-              weapenNextAbsPos.y -= 1;
-              break;
-            case DIRECTION_ENUM.BOTTOM:
-              weapenNextAbsPos.x += 1;
-              weapenNextAbsPos.y += 1;
-              break;
-            case DIRECTION_ENUM.LEFT:
-              weapenNextAbsPos.x -= 1;
-              weapenNextAbsPos.y += 1;
-              break;
-            case DIRECTION_ENUM.RIGHT:
-              weapenNextAbsPos.x += 1;
-              weapenNextAbsPos.y -= 1;
-              break;
-          }
-          break;
-        case CONTROLLER_ENUM.TURNRIGHT:
-          nextState = ENTITY_STATE_ENUM.BLOCKTURNRIGHT;
-          switch (direction) {
-            case DIRECTION_ENUM.TOP:
-              weapenNextAbsPos.x += 1;
-              weapenNextAbsPos.y -= 1;
-              break;
-            case DIRECTION_ENUM.BOTTOM:
-              weapenNextAbsPos.x -= 1;
-              weapenNextAbsPos.y += 1;
-              break;
-            case DIRECTION_ENUM.LEFT:
-              weapenNextAbsPos.x -= 1;
-              weapenNextAbsPos.y -= 1;
-              break;
-            case DIRECTION_ENUM.RIGHT:
-              weapenNextAbsPos.x += 1;
-              weapenNextAbsPos.y += 1;
-              break;
-          }
-          break;
-      }
-      // console.log('inputDirection, direction', weapenNextAbsPos);
-      const weapenNextX = x + weapenNextAbsPos.x;
-      const weapenNextY = y + weapenNextAbsPos.y;
 
       if (
-        (!tileInfo[x][weapenNextY] || tileInfo[x][weapenNextY].turnable) &&
-        (!tileInfo[weapenNextX][y] || tileInfo[weapenNextX][y].turnable) &&
-        (!tileInfo[weapenNextX][weapenNextY] || tileInfo[weapenNextX][weapenNextY].turnable)
+        isBlockingDoor(playerNextX, playerNextY) ||
+        isBlockingDoor(weaponNextX, weaponNextY) ||
+        isBlockingEnemy(playerNextX, playerNextY) ||
+        isBlockingEnemy(weaponNextX, weaponNextY)
+      ) {
+        this.state = blockState;
+        return true;
+      }
+
+      // if (isBlockingBurst(playerNextX, playerNextY) && (!nextWeaponTile || nextWeaponTile.turnable)) {
+      //   return false;
+      // }
+
+      if (isBlockingTile(nextPlayerTile, nextWeaponTile)) {
+        this.state = blockState;
+        return true;
+      }
+
+      return false;
+    };
+
+    const checkTurnBlockigConditions = (dx: number, dy: number, blockState: ENTITY_STATE_ENUM) => {
+      const { nextX, nextY } = getNextPositions(dx, dy);
+      if (isBlockingDoor(x, nextY) || isBlockingDoor(nextX, y) || isBlockingDoor(nextX, nextY)) {
+        this.state = blockState;
+        return true;
+      }
+
+      if (isBlockingEnemy(x, nextY) || isBlockingEnemy(nextX, y) || isBlockingEnemy(nextX, nextY)) {
+        this.state = blockState;
+        return true;
+      }
+
+      if (
+        (!tileInfo[x]?.[nextY] || tileInfo[x]?.[nextY].turnable) &&
+        (!tileInfo[nextX]?.[y] || tileInfo[nextX]?.[y].turnable) &&
+        (!tileInfo[nextX]?.[nextY] || tileInfo[nextX]?.[nextY].turnable)
       ) {
         // empty
       } else {
-        this.state = nextState;
+        this.state = blockState;
         return true;
       }
+    };
+
+    switch (inputDirection) {
+      case CONTROLLER_ENUM.TOP:
+        switch (direction) {
+          case DIRECTION_ENUM.TOP:
+            return checkBlockingConditions(0, -1, 0, -2, ENTITY_STATE_ENUM.BLOCKFRONT);
+          case DIRECTION_ENUM.BOTTOM:
+            return checkBlockingConditions(0, -1, 0, 0, ENTITY_STATE_ENUM.BLOCKBACK);
+          case DIRECTION_ENUM.LEFT:
+            return checkBlockingConditions(-1, -1, -1, -1, ENTITY_STATE_ENUM.BLOCKRIGHT);
+          case DIRECTION_ENUM.RIGHT:
+            return checkBlockingConditions(1, -1, 1, -1, ENTITY_STATE_ENUM.BLOCKLEFT);
+        }
+        break;
+      case CONTROLLER_ENUM.BOTTOM:
+        switch (direction) {
+          case DIRECTION_ENUM.TOP:
+            return checkBlockingConditions(0, 1, 0, 0, ENTITY_STATE_ENUM.BLOCKBACK);
+          case DIRECTION_ENUM.BOTTOM:
+            return checkBlockingConditions(0, 1, 0, 2, ENTITY_STATE_ENUM.BLOCKFRONT);
+          case DIRECTION_ENUM.LEFT:
+            return checkBlockingConditions(-1, 1, -1, 1, ENTITY_STATE_ENUM.BLOCKLEFT);
+          case DIRECTION_ENUM.RIGHT:
+            return checkBlockingConditions(1, 1, 1, 1, ENTITY_STATE_ENUM.BLOCKRIGHT);
+        }
+        break;
+      case CONTROLLER_ENUM.LEFT:
+        switch (direction) {
+          case DIRECTION_ENUM.TOP:
+            return checkBlockingConditions(-1, 0, -1, -1, ENTITY_STATE_ENUM.BLOCKLEFT);
+          case DIRECTION_ENUM.BOTTOM:
+            return checkBlockingConditions(-1, 0, -1, 1, ENTITY_STATE_ENUM.BLOCKRIGHT);
+          case DIRECTION_ENUM.LEFT:
+            return checkBlockingConditions(-1, 0, -2, 0, ENTITY_STATE_ENUM.BLOCKFRONT);
+          case DIRECTION_ENUM.RIGHT:
+            return checkBlockingConditions(-1, 0, 0, 0, ENTITY_STATE_ENUM.BLOCKBACK);
+        }
+        break;
+      case CONTROLLER_ENUM.RIGHT:
+        switch (direction) {
+          case DIRECTION_ENUM.TOP:
+            return checkBlockingConditions(1, 0, 1, -1, ENTITY_STATE_ENUM.BLOCKRIGHT);
+          case DIRECTION_ENUM.BOTTOM:
+            return checkBlockingConditions(1, 0, 1, 1, ENTITY_STATE_ENUM.BLOCKLEFT);
+          case DIRECTION_ENUM.LEFT:
+            return checkBlockingConditions(1, 0, 0, 0, ENTITY_STATE_ENUM.BLOCKFRONT);
+          case DIRECTION_ENUM.RIGHT:
+            return checkBlockingConditions(1, 0, 2, 0, ENTITY_STATE_ENUM.BLOCKBACK);
+        }
+        break;
+      case CONTROLLER_ENUM.TURNLEFT:
+        switch (direction) {
+          case DIRECTION_ENUM.TOP:
+            return checkTurnBlockigConditions(-1, -1, ENTITY_STATE_ENUM.BLOCKLEFT);
+          case DIRECTION_ENUM.BOTTOM:
+            return checkTurnBlockigConditions(1, 1, ENTITY_STATE_ENUM.BLOCKLEFT);
+          case DIRECTION_ENUM.LEFT:
+            return checkTurnBlockigConditions(-1, 1, ENTITY_STATE_ENUM.BLOCKLEFT);
+          case DIRECTION_ENUM.RIGHT:
+            return checkTurnBlockigConditions(1, -1, ENTITY_STATE_ENUM.BLOCKLEFT);
+        }
+        break;
+      case CONTROLLER_ENUM.TURNRIGHT:
+        switch (direction) {
+          case DIRECTION_ENUM.TOP:
+            return checkTurnBlockigConditions(1, -1, ENTITY_STATE_ENUM.BLOCKRIGHT);
+          case DIRECTION_ENUM.BOTTOM:
+            return checkTurnBlockigConditions(-1, 1, ENTITY_STATE_ENUM.BLOCKRIGHT);
+          case DIRECTION_ENUM.LEFT:
+            return checkTurnBlockigConditions(-1, -1, ENTITY_STATE_ENUM.BLOCKRIGHT);
+          case DIRECTION_ENUM.RIGHT:
+            return checkTurnBlockigConditions(1, 1, ENTITY_STATE_ENUM.BLOCKRIGHT);
+        }
+        break;
     }
 
     return false;
