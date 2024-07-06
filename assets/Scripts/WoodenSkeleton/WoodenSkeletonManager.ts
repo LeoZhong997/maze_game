@@ -1,79 +1,26 @@
 import { _decorator } from 'cc';
-import {
-  CONTROLLER_ENUM,
-  DIRECTION_ENUM,
-  DIRECTION_ORDER_ENUM,
-  ENTITY_STATE_ENUM,
-  ENTITY_TYPE_ENUM,
-  EVENT_ENUM,
-} from '../../Enums';
-import { EntityManager } from '../../Base/EntityManager';
-import { WoodenSkeletonStateMachine } from './WoodenSkeletonStateManager';
+import { ENTITY_STATE_ENUM, EVENT_ENUM } from '../../Enums';
 import EventManager from '../../Runtime/EventManager';
 import DataManager from '../../Runtime/DataManager';
+import { EnemyManager } from '../../Base/EnemyManager';
+import { IEntity } from '../../Levels';
+import { WoodenSkeletonStateMachine } from './WoodenSkeletonStateManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('WoodenSkeletonManager')
-export class WoodenSkeletonManager extends EntityManager {
-  async init() {
+export class WoodenSkeletonManager extends EnemyManager {
+  async init(params: IEntity) {
     this.fsm = this.addComponent(WoodenSkeletonStateMachine);
     await this.fsm.init(); // 有异步操作，使用Promise list等待所有资源加载后才退出
 
-    super.init({
-      x: 3,
-      y: 5,
-      type: ENTITY_TYPE_ENUM.WOODEN_SKELETON,
-      direction: DIRECTION_ENUM.TOP,
-      state: ENTITY_STATE_ENUM.IDLE,
-    });
+    super.init(params);
 
-    EventManager.Instance.on(EVENT_ENUM.PLAYER_MOVE_END, this.onChangeDirection, this);
     EventManager.Instance.on(EVENT_ENUM.PLAYER_MOVE_END, this.onAttack, this);
-    EventManager.Instance.on(EVENT_ENUM.ATTACK_ENEMY, this.onDead, this);
-    // 初次加载时，玩家可能比敌人后加载完成，需要刷新一次方向
-    EventManager.Instance.on(EVENT_ENUM.PLAYER_BORN, this.onChangeDirection, this);
-    this.onChangeDirection(true);
   }
 
   onDestroy() {
     super.onDestroy();
-    EventManager.Instance.off(EVENT_ENUM.PLAYER_MOVE_END, this.onChangeDirection);
     EventManager.Instance.off(EVENT_ENUM.PLAYER_MOVE_END, this.onAttack);
-    EventManager.Instance.off(EVENT_ENUM.ATTACK_ENEMY, this.onDead);
-    EventManager.Instance.off(EVENT_ENUM.PLAYER_BORN, this.onChangeDirection);
-  }
-
-  /**
-   * 敌人随着玩家移动改变方向
-   * @param isInit 在游戏初次加载生成玩家后，传递true强制改变敌人方向
-   * @returns
-   */
-  onChangeDirection(isInit: boolean = false) {
-    if (this.state === ENTITY_STATE_ENUM.DEATH || !DataManager.Instance.player) {
-      return;
-    }
-    const { x: playerX, y: playerY } = DataManager.Instance.player;
-
-    const disX = Math.abs(this.x - playerX);
-    const disY = Math.abs(this.y - playerY);
-
-    if (disX === disY && !isInit) {
-      return;
-    }
-
-    if (playerX >= this.x && playerY < this.y) {
-      // 第一象限
-      this.direction = disX > disY ? DIRECTION_ENUM.RIGHT : DIRECTION_ENUM.TOP;
-    } else if (playerX < this.x && playerY < this.y) {
-      // 第二象限
-      this.direction = disX > disY ? DIRECTION_ENUM.LEFT : DIRECTION_ENUM.TOP;
-    } else if (playerX < this.x && playerY >= this.y) {
-      // 第三象限
-      this.direction = disX > disY ? DIRECTION_ENUM.LEFT : DIRECTION_ENUM.BOTTOM;
-    } else if (playerX >= this.x && playerY >= this.y) {
-      // 第四象限
-      this.direction = disX > disY ? DIRECTION_ENUM.RIGHT : DIRECTION_ENUM.BOTTOM;
-    }
   }
 
   onAttack() {
@@ -92,16 +39,6 @@ export class WoodenSkeletonManager extends EntityManager {
       EventManager.Instance.emit(EVENT_ENUM.ATTACK_PLAYER, ENTITY_STATE_ENUM.DEATH);
     } else {
       this.state = ENTITY_STATE_ENUM.IDLE;
-    }
-  }
-
-  onDead(id: string) {
-    if (this.state === ENTITY_STATE_ENUM.DEATH && this.id !== id) {
-      return;
-    }
-
-    if (this.id === id) {
-      this.state = ENTITY_STATE_ENUM.DEATH;
     }
   }
 }

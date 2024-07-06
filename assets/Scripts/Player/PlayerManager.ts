@@ -4,6 +4,7 @@ import EventManager from '../../Runtime/EventManager';
 import { PlayerStateMachine } from './PLayerStateMachine';
 import { EntityManager } from '../../Base/EntityManager';
 import DataManager from '../../Runtime/DataManager';
+import { IEntity } from '../../Levels';
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerManager')
@@ -13,17 +14,11 @@ export class PlayerManager extends EntityManager {
   isMoving = false;
   private readonly speed = 1 / 10;
 
-  async init() {
+  async init(params: IEntity) {
     this.fsm = this.addComponent(PlayerStateMachine);
     await this.fsm.init(); // 有异步操作，使用Promise list等待所有资源加载后才退出
 
-    super.init({
-      x: 2,
-      y: 8,
-      type: ENTITY_TYPE_ENUM.PLAYER,
-      direction: DIRECTION_ENUM.TOP,
-      state: ENTITY_STATE_ENUM.IDLE,
-    });
+    super.init(params);
     this.targetX = this.x;
     this.targetY = this.y;
 

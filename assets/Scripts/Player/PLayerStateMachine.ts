@@ -15,13 +15,6 @@ import DeathSubStateMachine from './DeathSubStateMachine';
 import AttackSubStateMachine from './AttackSubStateMachine';
 const { ccclass, property } = _decorator;
 
-type ParamsValueType = boolean | number;
-
-export interface IParamsValue {
-  type: FSM_PARAM_TYPE_ENUM;
-  value: ParamsValueType;
-}
-
 @ccclass('PlayerStateMachine')
 export class PlayerStateMachine extends StateMachine {
   async init() {
