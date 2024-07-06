@@ -83,6 +83,7 @@ export class PlayerManager extends EntityManager {
     const id = this.willAttack(inputDirection);
     if (id) {
       console.log(`will attack ${id}`);
+      this.state = ENTITY_STATE_ENUM.ATTACK;
       EventManager.Instance.emit(EVENT_ENUM.ATTACK_ENEMY, id);
       EventManager.Instance.emit(EVENT_ENUM.DOOR_OPEN); // 击败敌人后再触发更好？
       return;
@@ -99,47 +100,36 @@ export class PlayerManager extends EntityManager {
   willAttack(inputDirection: CONTROLLER_ENUM) {
     const enemies = DataManager.Instance.enemies.filter(enemy => enemy.state !== ENTITY_STATE_ENUM.DEATH);
     const { targetX: x, targetY: y, direction } = this;
-    const weapenNextAbsPos = { x: 0, y: 0 };
-    if (
-      inputDirection === CONTROLLER_ENUM.TOP ||
-      inputDirection === CONTROLLER_ENUM.BOTTOM ||
-      inputDirection === CONTROLLER_ENUM.LEFT ||
-      inputDirection === CONTROLLER_ENUM.RIGHT
-    ) {
-      switch (inputDirection) {
-        case CONTROLLER_ENUM.TOP:
-          weapenNextAbsPos.y -= 1;
-          break;
-        case CONTROLLER_ENUM.BOTTOM:
-          weapenNextAbsPos.y += 1;
-          break;
-        case CONTROLLER_ENUM.LEFT:
-          weapenNextAbsPos.x -= 1;
-          break;
-        case CONTROLLER_ENUM.RIGHT:
-          weapenNextAbsPos.x += 1;
-          break;
-      }
-      switch (direction) {
-        case DIRECTION_ENUM.TOP:
-          weapenNextAbsPos.y -= 1;
-          break;
-        case DIRECTION_ENUM.BOTTOM:
-          weapenNextAbsPos.y += 1;
-          break;
-        case DIRECTION_ENUM.LEFT:
-          weapenNextAbsPos.x -= 1;
-          break;
-        case DIRECTION_ENUM.RIGHT:
-          weapenNextAbsPos.x += 1;
-          break;
-      }
-    }
     for (let i = 0; i < enemies.length; i++) {
       const enemy = enemies[i];
       const { x: enemyX, y: enemyY, id: enemyId } = enemy;
-      if (enemyX === x + weapenNextAbsPos.x && enemyY === y + weapenNextAbsPos.y) {
-        this.state = ENTITY_STATE_ENUM.ATTACK;
+      if (
+        inputDirection === CONTROLLER_ENUM.TOP &&
+        direction === DIRECTION_ENUM.TOP &&
+        enemyX === x &&
+        enemyY === y - 2
+      ) {
+        return enemyId;
+      } else if (
+        inputDirection === CONTROLLER_ENUM.BOTTOM &&
+        direction === DIRECTION_ENUM.BOTTOM &&
+        enemyX === x &&
+        enemyY === y + 2
+      ) {
+        return enemyId;
+      } else if (
+        inputDirection === CONTROLLER_ENUM.LEFT &&
+        direction === DIRECTION_ENUM.LEFT &&
+        enemyX === x - 2 &&
+        enemyY === y
+      ) {
+        return enemyId;
+      } else if (
+        inputDirection === CONTROLLER_ENUM.RIGHT &&
+        direction === DIRECTION_ENUM.RIGHT &&
+        enemyX === x + 2 &&
+        enemyY === y
+      ) {
         return enemyId;
       }
     }
