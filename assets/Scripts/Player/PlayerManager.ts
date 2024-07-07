@@ -138,7 +138,7 @@ export class PlayerManager extends EntityManager {
 
   willBlock(inputDirection: CONTROLLER_ENUM) {
     const { targetX: x, targetY: y, direction } = this;
-    const { tileInfo, enemies, door, mapRowCount: row, mapColCount: column } = DataManager.Instance;
+    const { tileInfo, enemies, bursts, door, mapRowCount: row, mapColCount: column } = DataManager.Instance;
 
     const getNextPositions = (dx: number, dy: number) => {
       const nextX = x + dx;
@@ -154,8 +154,9 @@ export class PlayerManager extends EntityManager {
     const isBlockingEnemy = (nextX: number, nextY: number) =>
       enemies.some(enemy => enemy.state !== ENTITY_STATE_ENUM.DEATH && enemy.x === nextX && enemy.y === nextY);
 
-    // const isBlockingBurst = (nextX, nextY) =>
-    // bursts.some(burst => burst.state !== ENTITY_STATE_ENUM.DEATH && burst.x === nextX && burst.y === nextY);
+    // 即使地图的瓦片不存在，PLayer也可以走在地裂上面
+    const isStandingBurst = (nextX: number, nextY: number) =>
+      bursts.some(burst => burst.state !== ENTITY_STATE_ENUM.DEATH && burst.x === nextX && burst.y === nextY);
 
     const isBlockingTile = (nextPlayerTile: TileManager, nextWeaponTile: TileManager) =>
       !nextPlayerTile || !nextPlayerTile.moveable || (nextWeaponTile && !nextWeaponTile.turnable);
@@ -187,9 +188,9 @@ export class PlayerManager extends EntityManager {
         return true;
       }
 
-      // if (isBlockingBurst(playerNextX, playerNextY) && (!nextWeaponTile || nextWeaponTile.turnable)) {
-      //   return false;
-      // }
+      if (isStandingBurst(playerNextX, playerNextY) && (!nextWeaponTile || nextWeaponTile.turnable)) {
+        return false;
+      }
 
       if (isBlockingTile(nextPlayerTile, nextWeaponTile)) {
         this.state = blockState;
@@ -231,9 +232,9 @@ export class PlayerManager extends EntityManager {
           case DIRECTION_ENUM.BOTTOM:
             return checkBlockingConditions(0, -1, 0, 0, ENTITY_STATE_ENUM.BLOCKBACK);
           case DIRECTION_ENUM.LEFT:
-            return checkBlockingConditions(-1, -1, -1, -1, ENTITY_STATE_ENUM.BLOCKRIGHT);
+            return checkBlockingConditions(0, -1, -1, -1, ENTITY_STATE_ENUM.BLOCKRIGHT);
           case DIRECTION_ENUM.RIGHT:
-            return checkBlockingConditions(1, -1, 1, -1, ENTITY_STATE_ENUM.BLOCKLEFT);
+            return checkBlockingConditions(0, -1, 1, -1, ENTITY_STATE_ENUM.BLOCKLEFT);
         }
         break;
       case CONTROLLER_ENUM.BOTTOM:
@@ -243,9 +244,9 @@ export class PlayerManager extends EntityManager {
           case DIRECTION_ENUM.BOTTOM:
             return checkBlockingConditions(0, 1, 0, 2, ENTITY_STATE_ENUM.BLOCKFRONT);
           case DIRECTION_ENUM.LEFT:
-            return checkBlockingConditions(-1, 1, -1, 1, ENTITY_STATE_ENUM.BLOCKLEFT);
+            return checkBlockingConditions(0, 1, -1, 1, ENTITY_STATE_ENUM.BLOCKLEFT);
           case DIRECTION_ENUM.RIGHT:
-            return checkBlockingConditions(1, 1, 1, 1, ENTITY_STATE_ENUM.BLOCKRIGHT);
+            return checkBlockingConditions(0, 1, 1, 1, ENTITY_STATE_ENUM.BLOCKRIGHT);
         }
         break;
       case CONTROLLER_ENUM.LEFT:
@@ -334,8 +335,8 @@ export class PlayerManager extends EntityManager {
             this.direction = DIRECTION_ENUM.TOP;
             break;
         }
+        this.state = ENTITY_STATE_ENUM.TURNLEFT; // 先完成内部状体改变，再触发外部事件改变下一个状态
         EventManager.Instance.emit(EVENT_ENUM.PLAYER_MOVE_END);
-        this.state = ENTITY_STATE_ENUM.TURNLEFT;
         break;
       case CONTROLLER_ENUM.TURNRIGHT:
         switch (this.direction) {
@@ -352,8 +353,8 @@ export class PlayerManager extends EntityManager {
             this.direction = DIRECTION_ENUM.BOTTOM;
             break;
         }
-        EventManager.Instance.emit(EVENT_ENUM.PLAYER_MOVE_END);
         this.state = ENTITY_STATE_ENUM.TURNRIGHT;
+        EventManager.Instance.emit(EVENT_ENUM.PLAYER_MOVE_END);
         break;
     }
     // console.log(this.targetX, this.targetY, this.x, this.y);

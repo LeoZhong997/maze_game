@@ -1,5 +1,5 @@
-import { TILE_TYPE_ENUM } from "../Enums";
-import { ILevel } from "./index";
+import { TILE_TYPE_ENUM } from '../Enums';
+import { ILevel } from './index';
 
 // 地图共有10列
 const mapInfo = [
@@ -428,8 +428,8 @@ const mapInfo = [
 
 // 封装关卡信息
 const level: ILevel = {
-  mapInfo
-}
+  mapInfo,
+};
 
 // 暴露关卡数据
-export default level
+export default level;

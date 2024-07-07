@@ -1,5 +1,5 @@
-import { TILE_TYPE_ENUM } from "../Enums";
-import { ILevel } from "./index";
+import { TILE_TYPE_ENUM } from '../Enums';
+import { ILevel } from './index';
 
 const mapInfo = [
   [
@@ -185,7 +185,7 @@ const mapInfo = [
 ];
 
 const level: ILevel = {
-  mapInfo
-}
+  mapInfo,
+};
 
 export default level;
