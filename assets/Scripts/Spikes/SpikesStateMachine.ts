@@ -5,6 +5,7 @@ import SpikesOneSubStateMachine from './SpikesOneSubStateMachine';
 import SpikesTwoSubStateMachine from './SpikesTwoSubStateMachine';
 import SpikesThreeSubStateMachine from './SpikesThreeSubStateMachine';
 import SpikesFourSubStateMachine from './SpikesFourSubStateMachine';
+import { SpikesManager } from './SpikesManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('SpikesStateMachine')
@@ -32,7 +33,21 @@ export class SpikesStateMachine extends StateMachine {
     this.stateMachines.set(ENTITY_TYPE_ENUM.SPIKES_FOUR, new SpikesFourSubStateMachine(this));
   }
 
-  initAnimationEvent() {}
+  initAnimationEvent() {
+    this.animationComponent.on(Animation.EventType.FINISHED, () => {
+      const name = this.animationComponent.defaultClip.name;
+      const value = this.getParams(PARAMS_NAME_ENUM.SPIKES_TOTAL_COUNT).value;
+      if (
+        (value === SPIKES_TYPE_MAP_TOTAL_COUNT_ENUM.SPIKES_ONE && name.includes('spikesone/two')) ||
+        (value === SPIKES_TYPE_MAP_TOTAL_COUNT_ENUM.SPIKES_TWO && name.includes('spikestwo/three')) ||
+        (value === SPIKES_TYPE_MAP_TOTAL_COUNT_ENUM.SPIKES_THREE && name.includes('spikesthree/four')) ||
+        (value === SPIKES_TYPE_MAP_TOTAL_COUNT_ENUM.SPIKES_FOUR && name.includes('spikesfour/five'))
+      ) {
+        // 播放完攻击动画后，自动回到零刺状态
+        this.node.getComponent(SpikesManager).backZero();
+      }
+    });
+  }
 
   run() {
     const totalCount = this.getParams(PARAMS_NAME_ENUM.SPIKES_TOTAL_COUNT).value;

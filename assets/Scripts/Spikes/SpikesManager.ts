@@ -1,10 +1,18 @@
 import { _decorator, Component, Sprite, UITransform } from 'cc';
-import { ENTITY_TYPE_ENUM, PARAMS_NAME_ENUM, SPIKES_TYPE_MAP_TOTAL_COUNT_ENUM } from '../../Enums';
+import {
+  ENTITY_STATE_ENUM,
+  ENTITY_TYPE_ENUM,
+  EVENT_ENUM,
+  PARAMS_NAME_ENUM,
+  SPIKES_TYPE_MAP_TOTAL_COUNT_ENUM,
+} from '../../Enums';
 import { randomByLength } from '../../Utils';
 import { StateMachine } from '../../Base/StateMachine';
 import { ISpikes } from '../../Levels';
 import { TILE_HEIGHT, TILE_WIDTH } from '../Tile/TileManager';
 import { SpikesStateMachine } from './SpikesStateMachine';
+import EventManager from '../../Runtime/EventManager';
+import DataManager from '../../Runtime/DataManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('SpikesManager')
@@ -51,6 +59,12 @@ export class SpikesManager extends Component {
     this.type = params.type;
     this.totalCount = SPIKES_TYPE_MAP_TOTAL_COUNT_ENUM[this.type];
     this.count = params.count;
+
+    EventManager.Instance.on(EVENT_ENUM.PLAYER_MOVE_END, this.onLoop, this);
+  }
+
+  onDestroy() {
+    EventManager.Instance.off(EVENT_ENUM.PLAYER_MOVE_END, this.onLoop);
   }
 
   update() {
@@ -58,5 +72,28 @@ export class SpikesManager extends Component {
     this.node.setPosition(this.x * TILE_WIDTH - 1.5 * TILE_WIDTH, -this.y * TILE_HEIGHT + 1.5 * TILE_HEIGHT);
   }
 
-  onDestroy() {}
+  onLoop() {
+    if (this.count === this.totalCount) {
+      this.count = 1; // 达到总点数时，会在状态机的动画结束时将count重置为0
+    } else {
+      this.count++;
+    }
+
+    this.onAttack();
+  }
+
+  backZero() {
+    this.count = 0;
+  }
+
+  onAttack() {
+    if (!DataManager.Instance.player) {
+      return;
+    }
+
+    const { x: playerX, y: playerY } = DataManager.Instance.player;
+    if (playerX === this.x && playerY === this.y && this.count === this.totalCount) {
+      EventManager.Instance.emit(EVENT_ENUM.ATTACK_PLAYER, ENTITY_STATE_ENUM.DEATH);
+    }
+  }
 }
