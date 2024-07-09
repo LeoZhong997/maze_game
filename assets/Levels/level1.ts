@@ -1,9 +1,7 @@
-import { TILE_TYPE_ENUM } from '../Enums';
-import { ILevel } from './index';
+import { TILE_TYPE_ENUM, DIRECTION_ENUM, ENTITY_TYPE_ENUM, ENTITY_STATE_ENUM } from '../Enums';
+import { IEntity, ILevel, ISpikes } from './index';
 
-// 地图共有10列
 const mapInfo = [
-  // 对应第一竖列
   [
     {
       src: null,
@@ -426,10 +424,43 @@ const mapInfo = [
   ],
 ];
 
-// 封装关卡信息
-const level: ILevel = {
-  mapInfo,
+const player: IEntity = {
+  x: 2,
+  y: 8,
+  direction: DIRECTION_ENUM.TOP,
+  state: ENTITY_STATE_ENUM.IDLE,
+  type: ENTITY_TYPE_ENUM.PLAYER,
 };
 
-// 暴露关卡数据
+const enemies: Array<IEntity> = [
+  {
+    x: 7,
+    y: 6,
+    direction: DIRECTION_ENUM.TOP,
+    state: ENTITY_STATE_ENUM.IDLE,
+    type: ENTITY_TYPE_ENUM.SKELETON_WOODEN,
+  },
+];
+
+const spikes: Array<ISpikes> = [];
+
+const bursts: Array<IEntity> = [];
+
+const door: IEntity = {
+  x: 7,
+  y: 8,
+  direction: DIRECTION_ENUM.BOTTOM,
+  state: ENTITY_STATE_ENUM.IDLE,
+  type: ENTITY_TYPE_ENUM.DOOR,
+};
+
+const level: ILevel = {
+  mapInfo,
+  player,
+  enemies,
+  spikes,
+  bursts,
+  door,
+};
+
 export default level;
