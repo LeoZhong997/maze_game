@@ -3,7 +3,7 @@ import ResourceManager from '../Runtime/ResourceManager';
 import { StateMachine } from './StateMachine';
 import { sortSpriteFrame } from '../Utils';
 
-const ANIMATION_SPEED = 1 / 8;
+export const ANIMATION_SPEED = 1 / 8;
 
 /***
  * 1. 需要知道 AnimationClip
@@ -16,6 +16,7 @@ export default class State {
     private fsm: StateMachine,
     private path: string,
     private wrapMode: AnimationClip.WrapMode = AnimationClip.WrapMode.Normal,
+    private speed: number = ANIMATION_SPEED,
   ) {
     this.init();
   }
@@ -35,7 +36,7 @@ export default class State {
     // 获取关键帧列表：时间；变化的属性，即spriteFrame
     // sortSpriteFrame修复异步资源加载顺序不一致的问题
     const frames: Array<[number, SpriteFrame]> = sortSpriteFrame(spriteFrames).map((spriteFrame, index) => [
-      ANIMATION_SPEED * index,
+      this.speed * index,
       spriteFrame,
     ]);
     // 为单通道的曲线添加关键帧
@@ -44,7 +45,7 @@ export default class State {
     // 最后将轨道添加到动画剪辑以应用
     this.animationClip.addTrack(track);
     this.animationClip.name = this.path;
-    this.animationClip.duration = frames.length * ANIMATION_SPEED; // 整个动画剪辑的周期
+    this.animationClip.duration = frames.length * this.speed; // 整个动画剪辑的周期
     this.animationClip.wrapMode = this.wrapMode; // 播放方式
   }
 

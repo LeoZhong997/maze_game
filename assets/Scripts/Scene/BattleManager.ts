@@ -12,23 +12,27 @@ import { DoorManager } from '../Door/DoorManager';
 import { IronSkeletonManager } from '../IronSkeleton/IronSkeletonManager';
 import { BurstManager } from '../Burst/BurstManager';
 import { SpikesManager } from '../Spikes/SpikesManager';
+import { SmokeManager } from '../Smoke/SmokeManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('BattleManager')
 export class BattleManager extends Component {
   level: ILevel;
   stage: Node;
+  private smokeLayer: Node;
 
   onLoad() {
     // 绑定事件
     EventManager.Instance.on(EVENT_ENUM.NEXT_LEVEL, this.nextLevel, this);
     EventManager.Instance.on(EVENT_ENUM.PLAYER_MOVE_END, this.checkArrived, this);
+    EventManager.Instance.on(EVENT_ENUM.SHOW_SMOKE, this.generateSmoke, this);
   }
 
   onDestroy() {
     // 解绑事件
     EventManager.Instance.off(EVENT_ENUM.NEXT_LEVEL, this.nextLevel);
     EventManager.Instance.off(EVENT_ENUM.PLAYER_MOVE_END, this.nextLevel);
+    EventManager.Instance.off(EVENT_ENUM.SHOW_SMOKE, this.generateSmoke);
   }
 
   start() {
@@ -49,9 +53,10 @@ export class BattleManager extends Component {
       this.generateTileMap();
       this.generateBursts();
       this.generateSpikes();
-      this.generatePlayer();
       this.generateEnemies();
       this.generateDoor();
+      this.generateSmokeLayer();
+      this.generatePlayer();
     }
   }
 
@@ -147,7 +152,45 @@ export class BattleManager extends Component {
     await Promise.all(promise);
   }
 
+  /***
+   * 形成烟雾层，确保在player之前调用，保证烟雾层在player之后
+   */
+  generateSmokeLayer() {
+    this.smokeLayer = createUINode('smokeLayer');
+    this.smokeLayer.setParent(this.stage);
+  }
+
+  async generateSmoke(x: number, y: number, direction: DIRECTION_ENUM) {
+    // 从缓存池里找到一个Death状态的smoke，重用该实例
+    const item = DataManager.Instance.smokes.find((smoke: SmokeManager) => smoke.state === ENTITY_STATE_ENUM.DEATH);
+    if (item) {
+      item.x = x;
+      item.y = y;
+      item.direction = direction;
+      item.state = ENTITY_STATE_ENUM.IDLE;
+      // 确保生成的位置一致
+      item.node.setPosition(x * TILE_WIDTH - 1.5 * TILE_WIDTH, -y * TILE_HEIGHT + 1.5 * TILE_HEIGHT);
+    } else {
+      const smoke = createUINode('smoke');
+      smoke.setParent(this.smokeLayer);
+
+      const smokeManger = smoke.addComponent(SmokeManager);
+      await smokeManger.init({
+        x,
+        y,
+        direction,
+        state: ENTITY_STATE_ENUM.IDLE,
+        type: ENTITY_TYPE_ENUM.SMOKE,
+      });
+      DataManager.Instance.smokes.push(smokeManger);
+    }
+  }
+
   checkArrived() {
+    if (!DataManager.Instance.player || !DataManager.Instance.door) {
+      return;
+    }
+
     const { x: playerX, y: playerY } = DataManager.Instance.player;
     const { x: doorX, y: doorY, state: doorState } = DataManager.Instance.door;
     if (playerX === doorX && playerY === doorY && doorState === ENTITY_STATE_ENUM.DEATH) {

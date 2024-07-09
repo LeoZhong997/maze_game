@@ -307,18 +307,22 @@ export class PlayerManager extends EntityManager {
       case CONTROLLER_ENUM.TOP:
         this.targetY -= 1;
         this.isMoving = true;
+        this.showSmoke(DIRECTION_ENUM.TOP);
         break;
       case CONTROLLER_ENUM.BOTTOM:
         this.targetY += 1;
         this.isMoving = true;
+        this.showSmoke(DIRECTION_ENUM.BOTTOM);
         break;
       case CONTROLLER_ENUM.LEFT:
         this.targetX -= 1;
         this.isMoving = true;
+        this.showSmoke(DIRECTION_ENUM.LEFT);
         break;
       case CONTROLLER_ENUM.RIGHT:
         this.targetX += 1;
         this.isMoving = true;
+        this.showSmoke(DIRECTION_ENUM.RIGHT);
         break;
       case CONTROLLER_ENUM.TURNLEFT:
         switch (this.direction) {
@@ -358,5 +362,9 @@ export class PlayerManager extends EntityManager {
         break;
     }
     // console.log(this.targetX, this.targetY, this.x, this.y);
+  }
+
+  showSmoke(direction: DIRECTION_ENUM) {
+    EventManager.Instance.emit(EVENT_ENUM.SHOW_SMOKE, this.x, this.y, direction);
   }
 }
