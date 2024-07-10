@@ -91,6 +91,7 @@ export class PlayerManager extends EntityManager {
 
     if (this.willBlock(inputDirection)) {
       console.log('will block');
+      EventManager.Instance.emit(EVENT_ENUM.SCREEN_SHAKE);
       return;
     }
 

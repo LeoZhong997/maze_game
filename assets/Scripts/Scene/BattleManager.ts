@@ -14,6 +14,7 @@ import { BurstManager } from '../Burst/BurstManager';
 import { SpikesManager } from '../Spikes/SpikesManager';
 import { SmokeManager } from '../Smoke/SmokeManager';
 import FaderManager from '../../Runtime/FaderManager';
+import { ShakeManager } from '../UI/ShakeManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('BattleManager')
@@ -79,13 +80,12 @@ export class BattleManager extends Component {
   generateStage() {
     this.stage = createUINode('stage'); // 包含地图、玩家、敌人
     this.stage.setParent(this.node);
-    console.log('stage.parent=', this.stage.parent.name);
+    this.stage.addComponent(ShakeManager);
   }
 
   async generateTileMap() {
     const tileMap = createUINode('tileMap');
     tileMap.setParent(this.stage);
-    console.log('tileMap.parent=', tileMap.parent.name);
 
     const tileMapManger = tileMap.addComponent(TileMapManager);
     await tileMapManger.init();
@@ -208,6 +208,8 @@ export class BattleManager extends Component {
     const { mapRowCount, mapColCount } = DataManager.Instance;
     const disX = (mapRowCount * TILE_WIDTH) / 2;
     const disY = (mapColCount * TILE_HEIGHT) / 2 + 80;
+
+    this.stage.getComponent(ShakeManager).stop();
     this.stage.setPosition(-disX, disY);
   }
 }
