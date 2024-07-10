@@ -75,6 +75,10 @@ export class PlayerManager extends EntityManager {
     this.state = type;
   }
 
+  onAttackShake(type: SHAKE_TYPE_ENUM) {
+    EventManager.Instance.emit(EVENT_ENUM.SCREEN_SHAKE, type);
+  }
+
   inputHandle(inputDirection: CONTROLLER_ENUM) {
     if (this.isMoving) {
       return;

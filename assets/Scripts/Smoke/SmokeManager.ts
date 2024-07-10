@@ -4,7 +4,7 @@ import { EntityManager } from '../../Base/EntityManager';
 import { SmokeStateMachine } from './SmokeStateManager';
 const { ccclass, property } = _decorator;
 
-@ccclass('IronSkeletonManager')
+@ccclass('SmokeManager')
 export class SmokeManager extends EntityManager {
   async init(params: IEntity) {
     this.fsm = this.addComponent(SmokeStateMachine);
