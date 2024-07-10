@@ -124,3 +124,10 @@ export enum SPIKES_COUNT_MAP_NUMBER_ENUM {
   FOUR = 4,
   FIVE = 5,
 }
+
+export enum SHAKE_TYPE_ENUM {
+  TOP = 'TOP',
+  BOTTOM = 'BOTTOM',
+  LEFT = 'LEFT',
+  RIGHT = 'RIGHT',
+}

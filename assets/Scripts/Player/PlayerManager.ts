@@ -1,5 +1,12 @@
 import { _decorator } from 'cc';
-import { CONTROLLER_ENUM, DIRECTION_ENUM, ENTITY_STATE_ENUM, ENTITY_TYPE_ENUM, EVENT_ENUM } from '../../Enums';
+import {
+  CONTROLLER_ENUM,
+  DIRECTION_ENUM,
+  ENTITY_STATE_ENUM,
+  ENTITY_TYPE_ENUM,
+  EVENT_ENUM,
+  SHAKE_TYPE_ENUM,
+} from '../../Enums';
 import EventManager from '../../Runtime/EventManager';
 import { PlayerStateMachine } from './PLayerStateMachine';
 import { EntityManager } from '../../Base/EntityManager';
@@ -82,7 +89,6 @@ export class PlayerManager extends EntityManager {
 
     const id = this.willAttack(inputDirection);
     if (id) {
-      console.log(`will attack ${id}`);
       this.state = ENTITY_STATE_ENUM.ATTACK;
       EventManager.Instance.emit(EVENT_ENUM.ATTACK_ENEMY, id);
       EventManager.Instance.emit(EVENT_ENUM.DOOR_OPEN); // 击败敌人后再触发更好？
@@ -90,11 +96,37 @@ export class PlayerManager extends EntityManager {
     }
 
     if (this.willBlock(inputDirection)) {
-      console.log('will block');
-      EventManager.Instance.emit(EVENT_ENUM.SCREEN_SHAKE);
+      if (inputDirection === CONTROLLER_ENUM.TOP) {
+        EventManager.Instance.emit(EVENT_ENUM.SCREEN_SHAKE, SHAKE_TYPE_ENUM.TOP);
+      } else if (inputDirection === CONTROLLER_ENUM.BOTTOM) {
+        EventManager.Instance.emit(EVENT_ENUM.SCREEN_SHAKE, SHAKE_TYPE_ENUM.BOTTOM);
+      } else if (inputDirection === CONTROLLER_ENUM.LEFT) {
+        EventManager.Instance.emit(EVENT_ENUM.SCREEN_SHAKE, SHAKE_TYPE_ENUM.LEFT);
+      } else if (inputDirection === CONTROLLER_ENUM.RIGHT) {
+        EventManager.Instance.emit(EVENT_ENUM.SCREEN_SHAKE, SHAKE_TYPE_ENUM.RIGHT);
+      } else if (inputDirection === CONTROLLER_ENUM.TURNLEFT) {
+        if (this.direction === DIRECTION_ENUM.TOP) {
+          EventManager.Instance.emit(EVENT_ENUM.SCREEN_SHAKE, SHAKE_TYPE_ENUM.LEFT);
+        } else if (this.direction === DIRECTION_ENUM.LEFT) {
+          EventManager.Instance.emit(EVENT_ENUM.SCREEN_SHAKE, SHAKE_TYPE_ENUM.BOTTOM);
+        } else if (this.direction === DIRECTION_ENUM.BOTTOM) {
+          EventManager.Instance.emit(EVENT_ENUM.SCREEN_SHAKE, SHAKE_TYPE_ENUM.RIGHT);
+        } else if (this.direction === DIRECTION_ENUM.RIGHT) {
+          EventManager.Instance.emit(EVENT_ENUM.SCREEN_SHAKE, SHAKE_TYPE_ENUM.TOP);
+        }
+      } else if (inputDirection === CONTROLLER_ENUM.TURNRIGHT) {
+        if (this.direction === DIRECTION_ENUM.TOP) {
+          EventManager.Instance.emit(EVENT_ENUM.SCREEN_SHAKE, SHAKE_TYPE_ENUM.RIGHT);
+        } else if (this.direction === DIRECTION_ENUM.LEFT) {
+          EventManager.Instance.emit(EVENT_ENUM.SCREEN_SHAKE, SHAKE_TYPE_ENUM.TOP);
+        } else if (this.direction === DIRECTION_ENUM.BOTTOM) {
+          EventManager.Instance.emit(EVENT_ENUM.SCREEN_SHAKE, SHAKE_TYPE_ENUM.LEFT);
+        } else if (this.direction === DIRECTION_ENUM.RIGHT) {
+          EventManager.Instance.emit(EVENT_ENUM.SCREEN_SHAKE, SHAKE_TYPE_ENUM.BOTTOM);
+        }
+      }
       return;
     }
-
     this.move(inputDirection);
   }
 
