@@ -15,16 +15,19 @@ import EventManager from '../../Runtime/EventManager';
 import DataManager from '../../Runtime/DataManager';
 const { ccclass, property } = _decorator;
 
+/***
+ * 地刺陷阱
+ */
 @ccclass('SpikesManager')
 export class SpikesManager extends Component {
   id: string = randomByLength(12);
   x: number = 0;
   y: number = 0;
   fsm: StateMachine;
+  type: ENTITY_TYPE_ENUM;
 
   private _count: number; // 地刺的当前点数，用于子状态内部的显示
   private _totalCount: number; // 地刺的总点数，用于选择哪种子状态
-  private type: ENTITY_TYPE_ENUM;
 
   get count() {
     return this._count;

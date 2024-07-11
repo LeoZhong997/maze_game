@@ -8,6 +8,9 @@ import { BurstStateMachine } from './BurstStateManager';
 import { TILE_HEIGHT, TILE_WIDTH } from '../Tile/TileManager';
 const { ccclass, property } = _decorator;
 
+/***
+ * 地裂陷阱
+ */
 @ccclass('BurstManager')
 export class BurstManager extends EntityManager {
   async init(params: IEntity) {
