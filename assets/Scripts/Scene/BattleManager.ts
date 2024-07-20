@@ -66,8 +66,8 @@ export class BattleManager extends Component {
       this.levelDisplay.string = `Level ${DataManager.Instance.levelIndex}`;
 
       DataManager.Instance.mapInfo = level.mapInfo;
-      DataManager.Instance.mapColCount = level.mapInfo.length || 0;
-      DataManager.Instance.mapRowCount = level.mapInfo[0].length || 0;
+      DataManager.Instance.mapRowCount = level.mapInfo.length || 0;
+      DataManager.Instance.mapColCount = level.mapInfo[0].length || 0;
 
       await Promise.all([
         this.generateTileMap(),
