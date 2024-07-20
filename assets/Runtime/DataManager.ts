@@ -19,7 +19,7 @@ export default class DataManager extends Singleton {
   tileInfo: Array<Array<TileManager>>;
   mapRowCount: number = 0;
   mapColCount: number = 0;
-  levelIndex: number = 1;
+  levelIndex: number = 0;
   player: PlayerManager;
   door: DoorManager;
   spikes: SpikesManager[];

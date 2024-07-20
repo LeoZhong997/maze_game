@@ -1,4 +1,4 @@
-import { _decorator, Component, director, Node } from 'cc';
+import { _decorator, Component, director, Label, Node } from 'cc';
 import { TileMapManager } from '../Tile/TileMapManager';
 import { createUINode } from '../../Utils';
 import Levels, { ILevel } from '../../Levels';
@@ -19,6 +19,9 @@ const { ccclass, property } = _decorator;
 
 @ccclass('BattleManager')
 export class BattleManager extends Component {
+  @property(Label)
+  levelDisplay: Label = null;
+
   level: ILevel;
   stage: Node;
   private smokeLayer: Node;
@@ -60,6 +63,7 @@ export class BattleManager extends Component {
 
       this.clearLevel();
       this.level = level;
+      this.levelDisplay.string = `Level ${DataManager.Instance.levelIndex}`;
 
       DataManager.Instance.mapInfo = level.mapInfo;
       DataManager.Instance.mapColCount = level.mapInfo.length || 0;
