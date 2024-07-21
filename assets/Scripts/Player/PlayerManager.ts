@@ -1,4 +1,4 @@
-import { _decorator } from 'cc';
+import { _decorator, EventKeyboard, input, Input, KeyCode } from 'cc';
 import {
   CONTROLLER_ENUM,
   DIRECTION_ENUM,
@@ -33,12 +33,39 @@ export class PlayerManager extends EntityManager {
     // 注册监听事件
     EventManager.Instance.on(EVENT_ENUM.PLAYER_CTRL, this.inputHandle, this);
     EventManager.Instance.on(EVENT_ENUM.ATTACK_PLAYER, this.onDead, this);
+
+    // 注册键盘事件
+    input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
   }
 
   onDestroy() {
     super.onDestroy();
     EventManager.Instance.off(EVENT_ENUM.PLAYER_CTRL, this.inputHandle);
     EventManager.Instance.off(EVENT_ENUM.ATTACK_PLAYER, this.onDead);
+    input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+  }
+
+  onKeyDown(event: EventKeyboard) {
+    switch (event.keyCode) {
+      case KeyCode.KEY_W:
+        this.inputHandle(CONTROLLER_ENUM.TOP);
+        break;
+      case KeyCode.KEY_A:
+        this.inputHandle(CONTROLLER_ENUM.LEFT);
+        break;
+      case KeyCode.KEY_S:
+        this.inputHandle(CONTROLLER_ENUM.BOTTOM);
+        break;
+      case KeyCode.KEY_D:
+        this.inputHandle(CONTROLLER_ENUM.RIGHT);
+        break;
+      case KeyCode.KEY_Q:
+        this.inputHandle(CONTROLLER_ENUM.TURNLEFT);
+        break;
+      case KeyCode.KEY_E:
+        this.inputHandle(CONTROLLER_ENUM.TURNRIGHT);
+        break;
+    }
   }
 
   update() {
