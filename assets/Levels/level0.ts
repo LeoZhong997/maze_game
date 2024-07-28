@@ -213,6 +213,7 @@ function mazeToLevel(maze: string[][], mazeWidth: number, mazeHeight: number) {
     for (let y = 0; y < mazeHeight; y++) {
       const tile: ITile = { src: null, type: null };
       if (maze[y][x] === '#') {
+        // 四个角落
         if (y === 0 && x === 0) {
           tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_LEFT_TOP;
           tile.type = TILE_TYPE_ENUM.WALL_LEFT_TOP;
@@ -227,6 +228,7 @@ function mazeToLevel(maze: string[][], mazeWidth: number, mazeHeight: number) {
           tile.type = TILE_TYPE_ENUM.WALL_RIGHT_BOTTOM;
         } else {
           if (y === mazeHeight - 1) {
+            // 最底下一排为悬崖
             if (x === 0) {
               tile.src = TILE_TYPE_MAP_SRC_ENUM.CLIFF_LEFT;
               tile.type = TILE_TYPE_ENUM.CLIFF_LEFT;
@@ -237,12 +239,71 @@ function mazeToLevel(maze: string[][], mazeWidth: number, mazeHeight: number) {
               tile.src = TILE_TYPE_MAP_SRC_ENUM.CLIFF_CENTER;
               tile.type = TILE_TYPE_ENUM.CLIFF_CENTER;
             }
-          } else if (y === 0 || y === mazeHeight - 2) {
-            tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_ROW;
-            tile.type = TILE_TYPE_ENUM.WALL_ROW;
+            // } else if (y === 0 || y === mazeHeight - 2) {
+            //   // 最上下两排为墙
+            //   tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_ROW;
+            //   tile.type = TILE_TYPE_ENUM.WALL_ROW;
+            // } else if (x === 0 || x === mazeWidth - 1) {
+            //   // 左右两边为墙
+            //   tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_COLUMN;
+            //   tile.type = TILE_TYPE_ENUM.WALL_COLUMN;
           } else {
-            tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_COLUMN;
-            tile.type = TILE_TYPE_ENUM.WALL_COLUMN;
+            // 中间的墙壁，根据四周的情况判断
+            let leftNeiborhoodNum: number = 0;
+            let rightNeiborhoodNum: number = 0;
+            let topNeiborhoodNum: number = 0;
+            let bottomNeiborhoodNum: number = 0;
+            if (y - 1 >= 0 && maze[y - 1][x] === '#') {
+              topNeiborhoodNum += 1;
+            }
+            if (y + 1 < mazeHeight - 1 && maze[y + 1][x] === '#') {
+              bottomNeiborhoodNum += 1;
+            }
+            if (x - 1 >= 0 && maze[y][x - 1] === '#') {
+              leftNeiborhoodNum += 1;
+            }
+            if (x + 1 < mazeWidth && maze[y][x + 1] === '#') {
+              rightNeiborhoodNum += 1;
+            }
+
+            const colNeiborhoodNum = topNeiborhoodNum + bottomNeiborhoodNum;
+            const rowNeiborhoodNum = leftNeiborhoodNum + rightNeiborhoodNum;
+            if (colNeiborhoodNum === 2) {
+              tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_COLUMN;
+              tile.type = TILE_TYPE_ENUM.WALL_COLUMN;
+            } else if (rowNeiborhoodNum === 2) {
+              tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_ROW;
+              tile.type = TILE_TYPE_ENUM.WALL_ROW;
+            } else {
+              if (topNeiborhoodNum === 1 && rightNeiborhoodNum === 1) {
+                tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_LEFT_BOTTOM;
+                tile.type = TILE_TYPE_ENUM.WALL_LEFT_BOTTOM;
+              } else if (topNeiborhoodNum === 1 && leftNeiborhoodNum === 1) {
+                tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_RIGHT_BOTTOM;
+                tile.type = TILE_TYPE_ENUM.WALL_RIGHT_BOTTOM;
+              } else if (bottomNeiborhoodNum === 1 && rightNeiborhoodNum === 1) {
+                tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_LEFT_TOP;
+                tile.type = TILE_TYPE_ENUM.WALL_LEFT_TOP;
+              } else if (bottomNeiborhoodNum === 1 && leftNeiborhoodNum === 1) {
+                tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_RIGHT_TOP;
+                tile.type = TILE_TYPE_ENUM.WALL_RIGHT_TOP;
+              } else if (bottomNeiborhoodNum === 1) {
+                tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_LEFT_TOP;
+                tile.type = TILE_TYPE_ENUM.WALL_LEFT_TOP;
+              } else if (topNeiborhoodNum === 1) {
+                tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_ROW;
+                tile.type = TILE_TYPE_ENUM.WALL_ROW;
+              } else if (leftNeiborhoodNum === 1) {
+                tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_RIGHT_BOTTOM;
+                tile.type = TILE_TYPE_ENUM.WALL_RIGHT_BOTTOM;
+              } else if (rightNeiborhoodNum === 1) {
+                tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_LEFT_BOTTOM;
+                tile.type = TILE_TYPE_ENUM.WALL_LEFT_BOTTOM;
+              } else {
+                tile.src = TILE_TYPE_MAP_SRC_ENUM.WALL_ROW;
+                tile.type = TILE_TYPE_ENUM.WALL_ROW;
+              }
+            }
           }
         }
       } else {
